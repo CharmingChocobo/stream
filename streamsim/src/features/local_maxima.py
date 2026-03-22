@@ -1,3 +1,5 @@
+__author__ = "F.Feenstra"
+
 from collections import deque
 from typing import Optional
 import time
@@ -75,4 +77,3 @@ class LocalMaximaDeriver(StreamingFeatureDeriver):
     def reset(self) -> None:
         self._buffer.clear()
         self._peak_timestamp = None
-        

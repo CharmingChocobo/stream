@@ -1,3 +1,5 @@
+__author__ = "F.Feenstra"
+
 import numpy as np
 
 class SinusDataSource:

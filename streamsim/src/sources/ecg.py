@@ -1,4 +1,5 @@
 #ecg.py
+__author__ = "F.Feenstra"
 
 import numpy as np  
 import wfdb

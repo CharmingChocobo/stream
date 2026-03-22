@@ -1,5 +1,7 @@
 """ Sinus Wave Peak Detection Demonstration Script."""
 
+__author__ = "F.Feenstra"
+
 from streamsim.src.core.simulator import StreamingSimulator
 from streamsim.src.core.config import PlottingSetup
 from streamsim.src.features.local_maxima import LocalMaximaDeriver

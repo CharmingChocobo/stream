@@ -1,3 +1,5 @@
+__author__ = "F.Feenstra"
+
 from typing import List, Any
 import numpy as np
 from streamsim.src.core.interfaces import StreamingRenderer 

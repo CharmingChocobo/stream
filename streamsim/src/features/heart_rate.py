@@ -4,8 +4,10 @@ import numpy as np
 from collections import deque
 from typing import Optional, Tuple
 
+
 from streamsim.src.core.interfaces import StreamingFeatureDeriver
 
+__author__ = "F.Feenstra"
 
 class HRFeatureDeriver(StreamingFeatureDeriver):
     """
