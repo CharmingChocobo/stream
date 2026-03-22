@@ -1,59 +1,181 @@
 """Abstract base classes for the streaming framework."""
 
+__author__ = "F.Feenstra"
+
 from abc import ABC, abstractmethod
 from typing import Optional, Any, List
 import numpy as np
 
 
 class StreamingFeatureDeriver(ABC):
-    """Abstract base class for feature extraction from streaming data."""
+    """
+    Abstract base class for real-time feature extraction from streaming data.
     
+    This class defines the interface for components that process incoming data
+    samples sequentially to derive meaningful features (e.g., statistical metrics,
+    signal characteristics, or event detections). Implementations maintain internal
+    state to compute features incrementally without needing to store the entire
+    history of raw data.
+    
+    Methods:
+        add_sample(sample, timestamp): Feed a new data point into the processor.
+        get_feature(): Retrieve the most recently calculated feature value.
+        reset(): Clear all internal state and buffers.
+    
+    """
     @abstractmethod
     def add_sample(self, sample: float, timestamp: float = None) -> None:
-        """Add a new sample to the processor."""
+        """
+        Add a new sample to the processor.
+        
+        Processes the incoming data point and updates internal state.
+        This method is called frequently in the streaming loop.
+        
+        Args:
+            sample (float): The new data value to process.
+            timestamp (float, optional): The timestamp associated with the sample.
+                                         Used for time-based calculations if supported.
+        """
         pass
     
     @abstractmethod
     def get_feature(self) -> Optional[float]:
-        """Get the latest derived feature value."""
+        """
+        Get the latest derived feature value.
+        
+        Returns the most recently computed feature based on the samples processed
+        so far. Returns None if insufficient data exists to compute a feature.
+        
+        Returns:
+            Optional[float]: The calculated feature value, or None if unavailable.
+        """
         pass
     
     def reset(self) -> None:
-        """Reset internal state."""
+        """
+        Reset internal state.
+        
+        Clears all buffers, counters, and accumulated statistics.
+        Called when starting a new data stream or segment.
+        """
         pass
 
 
 class StreamingChangePointDetector(ABC):
-    """Abstract base class for change point detection."""
+    """
+    Abstract base class for detecting distribution shifts (change points) in streaming data.
+    
+    This class defines the interface for algorithms that monitor a sequence of feature
+    values and identify moments where the underlying statistical properties of the
+    data change significantly (e.g., mean shift, variance change, concept drift).
+    
+ 
+    Attributes:
+        drift_detected (bool): Property indicating if a change point was recently detected.
+                               Defaults to False; implementations override this logic.
+    
+    Methods:
+        update(feature_value): Process a new feature and return detection result.
+        drift_detected: Read-only property for current drift status.
+    
+    """
     
     @abstractmethod
     def update(self, feature_value: Optional[float]) -> bool:
-        """Update detector with new feature value. Returns True if change detected."""
+        """
+        Update detector with new feature value.
+        
+        Processes the incoming feature and determines if a change point has occurred.
+        This method should be called sequentially for every new feature generated
+        by a `StreamingFeatureDeriver`.
+        
+        Args:
+            feature_value (Optional[float]): The latest feature value to analyze.
+                                             Can be None if the feature is unavailable.
+        
+        Returns:
+            bool: True if a change point (drift) is detected at this step, False otherwise.
+        """
         pass
     
     @property
     def drift_detected(self) -> bool:
-        """Check if drift/change was detected."""
+        """
+        Check if drift/change was detected.
+        
+        Returns the current status of the detector. This property reflects the
+        outcome of the most recent `update()` call or the cumulative state
+        depending on the implementation strategy.
+        
+        Returns:
+            bool: True if a change point is currently flagged, False otherwise.
+        """
         return False
 
 
 class StreamingRenderer(ABC):
-    """Abstract base class for streaming visualizations."""
+    """
+    Abstract base class for real-time visualization of streaming data.
+    
+    This class defines the interface for components responsible for rendering
+    dynamic plots in a streaming environment. It separates the logic of data
+    preparation from the rendering engine, allowing for efficient updates
+    (e.g., via blitting) without redrawing the entire figure.
+    
+    Methods:
+        initialize(ax): Set up the initial plot structure on the provided axes.
+        update(...): Refresh plot data for the current time window.
+        cleanup(): Release resources and clear references.
+    
+    """
     
     @abstractmethod
     def initialize(self, ax: Any) -> List[Any]:
-        """Create initial plot elements. Returns list of artists for blitting."""
+        """
+        Create initial plot elements.
+        
+        Sets up the necessary matplotlib artists (lines, scatter plots, etc.)
+        on the provided axes. This is called once when the visualization starts.
+        
+        Args:
+            ax (Any): The matplotlib Axes instance to draw on.
+        
+        Returns:
+            List[Any]: A list of artist objects (e.g., Line2D, PathCollection)
+                       that should be tracked for efficient updates (blitting).
+        """
         pass
     
     @abstractmethod
     def update(self, times: np.ndarray, samples: np.ndarray, 
                features: np.ndarray, change_points: np.ndarray,
                window_duration_sec: float) -> List[Any]:
-        """Update plot elements with new data. Returns updated artists."""
+        """
+        Update plot elements with new data.
+        
+        Refreshes the data for the existing artists to reflect the latest
+        streaming data within the specified time window.
+        
+        Args:
+            times (np.ndarray): Array of timestamps for the samples.
+            samples (np.ndarray): Array of raw data values.
+            features (np.ndarray): Array of derived feature values (may contain None).
+            change_points (np.ndarray): Array of timestamps where changes were detected.
+            window_duration_sec (float): Duration of the visible time window in seconds.
+        
+        Returns:
+            List[Any]: Updated list of artist objects that have been modified.
+                       Used by animation frameworks to determine what to redraw.
+        """
         pass
     
     @abstractmethod
     def cleanup(self) -> None:
-        """Release resources if needed."""
+        """
+        Release resources if needed.
+        
+        Clears references to plot elements and performs any necessary teardown
+        to prevent memory leaks, especially important in long-running streaming
+        applications.
+        """
         pass
-
