@@ -1,10 +1,14 @@
+"""Very simple change point detector that flags points that deviate significantly from the recent mean."""
+
+__author__ = "F.Feenstra"
+
 from collections import deque
 import numpy as np
 from streamsim.src.core.interfaces import StreamingChangePointDetector
 
 
 class SimpleDetector(StreamingChangePointDetector):
-    def __init__(self, threshold=4.0):
+    def __init__(self, threshold=2.0):
         self.threshold = threshold
         self.history = deque(maxlen=50)
 

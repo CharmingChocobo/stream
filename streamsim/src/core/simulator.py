@@ -1,5 +1,7 @@
 """Main streaming simulator with multi-threaded architecture."""
 
+__author__ = "F.Feenstra"
+
 import numpy as np
 import threading
 from typing import Optional, Any, List
@@ -7,7 +9,6 @@ import time
 from queue import Queue, Empty
 from typing import Callable, Optional, Tuple, List
 from collections import deque
-
 from streamsim.src.core.interfaces import StreamingFeatureDeriver, StreamingChangePointDetector, StreamingRenderer
 from streamsim.src.core.config import PlottingSetup
 
@@ -59,42 +60,62 @@ class StreamingSimulator:
 
     def _processing_loop(self) -> None:
         """Worker thread: processes data and feeds queues."""
+    
+        self.change_timestamps = []
+        
         while self.is_running:
             sample_data = self.data_source()
             if sample_data is None:
                 break
 
-            print(f"Received sample data: {sample_data[0]}")
+            timestamp = None
             try:
                 sample, timestamp = sample_data
                 self.feature_deriver.add_sample(sample, timestamp)
-            except TypeError:
-                sample = sample_data[0]
+            except (ValueError, TypeError):
+                sample = sample_data
                 self.feature_deriver.add_sample(sample)
 
             feature = self.feature_deriver.get_feature()
-
-            is_change = False
-            if feature is not None:
-                try:
-                    is_change = self.change_point_detector.update(feature, timestamp)
-                except TypeError:
-                    is_change = self.change_point_detector.update(feature)
+            
+            is_change = self.change_point_detector.update(feature)
+            
+            print(f"[Simulator] Feature={feature}, is_change={is_change}")
+            
+            if is_change:
+                if not hasattr(self, '_anomaly_line_added') or not self._anomaly_line_added:
+                    self.change_timestamps.append(timestamp)
+                    self._anomaly_line_added = True
+                    print(f"[Simulator] ADDED change point: t={timestamp:.2f}s")
+            else:
+                self._anomaly_line_added = False
 
             if not self.queue.full():
                 self.queue.put({
                     "sample": sample,
                     "timestamp": timestamp,
                     "feature": feature,
-                    "is_change": is_change
+                    "is_change": is_change,
+                    "change_points": np.array(self.change_timestamps)
                 })
 
             time.sleep(0.001)
+
+
+    def _init_plot(self) -> List[Any]:
+        """Initialize plot elements for animation."""
+        artists = self.renderer.initialize(self.plotting_setup.ax)
+        self.plotting_setup.configure()
+        return artists
+    
 
     def _update_plot(self, frame: int) -> List[Any]:
         """Main thread: Queue -> Buffer -> Render."""
         import matplotlib.pyplot as plt
         from matplotlib.animation import FuncAnimation
+        
+        # Track change points from queue
+        change_points_list = []
         
         count = 0
         while count < 200:
@@ -112,8 +133,10 @@ class StreamingSimulator:
             
             if msg["feature"] is not None:
                 self.feature_buffer.append(msg["feature"])
-                if msg["is_change"]:
-                    self.change_point_times.append(msg["feature"])
+            
+            # Collect change points from queue message
+            if "change_points" in msg and len(msg["change_points"]) > 0:
+                change_points_list = list(msg["change_points"])
             
             count += 1
 
@@ -123,7 +146,9 @@ class StreamingSimulator:
         times = np.fromiter(self.time_buffer, float)
         samples = np.fromiter(self.sample_buffer, float)
         features = np.fromiter(self.feature_buffer, float) if self.feature_buffer else np.array([])
-        cps = features
+        
+        # FIX: Use actual change point timestamps, not features!
+        cps = np.array(change_points_list) if change_points_list else np.array([])
 
         artists = self.renderer.update(times, samples, features, cps, self.window_duration_sec)
         
@@ -135,11 +160,6 @@ class StreamingSimulator:
         
         return artists
 
-    def _init_plot(self) -> List[Any]:
-        """Initialize plot elements for animation."""
-        artists = self.renderer.initialize(self.plotting_setup.ax)
-        self.plotting_setup.configure()
-        return artists
 
     def start(self) -> None:
         """Start the streaming simulation."""
@@ -164,6 +184,7 @@ class StreamingSimulator:
         )
 
         plt.show()
+
 
     def stop(self) -> None:
         """Stop the streaming simulation."""
