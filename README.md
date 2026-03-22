@@ -108,7 +108,7 @@ This demonstrates:
                                                 └──────────────────┘
 ```
 Components
-![class_diagram](classes_streamsim.png)
+![class_diagram](streamsim/classes_streamsim.png)
 
 
 ## Usage Examples
