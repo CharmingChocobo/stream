@@ -75,3 +75,4 @@ class LocalMaximaDeriver(StreamingFeatureDeriver):
     def reset(self) -> None:
         self._buffer.clear()
         self._peak_timestamp = None
+        

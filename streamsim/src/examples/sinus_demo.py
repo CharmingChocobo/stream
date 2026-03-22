@@ -51,7 +51,7 @@ def run_sinus_example():
 
     # 2. Define Data Source Generator
     # Generates a 1 Hz sine wave sampled at 100 Hz for 20 seconds.
-    sinus_source = create_sinus_data_source(frequency=1.0, fs=100.0, duration=20.0)
+    sinus_source = create_sinus_data_source(frequency=1.0, fs=100.0, duration=40.0)
     
     # 3. Configure Feature Deriver
     deriver = LocalMaximaDeriver()
@@ -66,7 +66,7 @@ def run_sinus_example():
         marker_alpha=0.8,
         show_legend=True,
         marker_label='Peak',
-        title_template="Sinus Wave Peaks — Latest Value: {feature:.4f}"
+        title_template="Sinus Wave Peaks — Latest Value: {feature:.1f}"
     )
 
     # 6. Initialize and Start Simulator
