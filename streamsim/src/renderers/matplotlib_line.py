@@ -1,4 +1,44 @@
-__author__ = "F.Feenstra"
+"""
+Matplotlib Streaming Renderer with Marker Point Visualization
+
+This module provides a streaming renderer class for visualizing time-series
+data with automatic annotation of detected Marker points. It is designed
+for integration with real-time data pipelines where Marker points need to
+be highlighted dynamically as new data arrives.
+
+The renderer maintains a sliding time window, automatically filtering data
+to display only the most recent samples within the configured duration.
+Marker points are interpolated to match the signal line's y-values
+at the detected timestamps.
+
+Features:
+    - Dynamic title updates with feature values
+    - Configurable styling for signal lines and marker points
+    - Efficient incremental updates (no full redraws)
+    - Automatic visibility management for marker points
+    - Resource cleanup via explicit cleanup() method
+
+Important Dependencies:
+    - streamsim.src.core.interfaces.StreamingRenderer: Base interface
+
+Author: F.Feenstra
+
+Example:
+    >>> import matplotlib.pyplot as plt
+    >>> from streamsim.src.renderers.matplotlib_line import MatplotlibLineRenderer
+    >>> renderer = MatplotlibLineRenderer(
+    ...     line_color='blue',
+    ...     marker_style='ro',
+    ...     marker_alpha=0.8,
+    ...     show_legend=True,
+    ...     marker_label='Peak',
+    ...     title_template="Sinus Wave Peaks — Latest Value: {feature:.1f}"
+    ... )
+    >>> fig, ax = plt.subplots()
+    >>> artists = renderer.initialize(ax)
+    >>> # In streaming loop:
+    >>> # updated_artists = renderer.update(times, samples, features, change_points, window_duration)
+"""
 
 from typing import List, Any
 import numpy as np
@@ -9,53 +49,13 @@ class MatplotlibLineRenderer(StreamingRenderer):
     Default matplotlib line chart renderer for streaming data visualization.
     
     This class implements the StreamingRenderer interface to provide real-time
-    visualization of streaming signals with configurable styling and change point
+    visualization of streaming signals with configurable styling and marker point
     annotation. It supports dynamic title updates based on feature values and
     flexible legend configuration for both signal and marker elements.
     
     Designed for use with the streaming framework's data pipeline, this renderer
     efficiently updates plot elements without redrawing the entire figure,
     making it suitable for high-frequency data streams.
-    
-    Args:
-        line_color (str): Color of the signal line (default: 'blue').
-        line_width (float): Stroke width of the signal line (default: 2.0).
-        marker_style (str): Matplotlib marker style string (default: 'ro' = red circles).
-        marker_alpha (float): Transparency of change point markers (default: 0.7).
-        signal_label (str): Legend label for the signal line (default: 'Signal').
-        marker_label (str): Legend label for change point markers (default: 'Change').
-        show_legend (bool): Whether to display the plot legend (default: True).
-        title_template (str): Format string for dynamic title with {feature} placeholder.
-        
-
-    Returns:
-        List[Any]: In initialize() and update(), returns list of artist objects
-                   [line, marker, title_artist] for animation framework tracking.
-    
-    Example:
-        >>> from streamsim.src.renderers.matplotlibline import MatplotlibLineRenderer
-        >>> import matplotlib.pyplot as plt
-        >>>
-        >>> # Basic usage with defaults
-        >>> renderer = MatplotlibLineRenderer()
-        >>> fig, ax = plt.subplots()
-        >>> artists = renderer.initialize(ax)
-        >>>
-        >>> # Customized for ECG visualization
-        >>> renderer = MatplotlibLineRenderer(
-        ...     line_color='black',
-        ...     marker_style='go',
-        ...     signal_label='ECG Lead II',
-        ...     marker_label='R-Peak',
-        ...     title_template='Heart Rate: {feature:.1f} bpm'
-        ... )
-        >>> artists = renderer.initialize(ax)
-        >>> # Later in the loop:
-        >>> renderer.update(times, samples, features, change_points, 5.0)
-        >>>
-        >>> # Hide markers from legend
-        >>> renderer = MatplotlibLineRenderer(marker_label='_nolegend_')
-    
     """
     
     def __init__(
@@ -88,7 +88,7 @@ class MatplotlibLineRenderer(StreamingRenderer):
         """
         Create initial plot elements on the provided axes.
         
-        Sets up the signal line, change point markers, and dynamic title on the
+        Sets up the signal line, markers, and dynamic title on the
         given matplotlib axes. This method should be called once before the
         streaming loop begins.
         
@@ -101,10 +101,16 @@ class MatplotlibLineRenderer(StreamingRenderer):
                        should be tracked for efficient updates (e.g., blitting).
         
         Example:
-            >>> fig, ax = plt.subplots()
-            >>> renderer = MatplotlibLineRenderer()
-            >>> artists = renderer.initialize(ax)
-            >>> assert len(artists) == 3  # line, marker, title
+        >>> renderer = MatplotlibLineRenderer(
+        ...     line_color='blue',
+        ...     marker_style='ro',
+        ...     marker_alpha=0.8,
+        ...     show_legend=True,
+        ...     marker_label='Peak',
+        ...     title_template="Sinus Wave Peaks — Latest Value: {feature:.1f}"
+        ... )
+        >>> fig, ax = plt.subplots()
+        >>> artists = renderer.initialize(ax)
         """
         self.ax = ax
         self.line, = ax.plot([], [], lw=self.line_width, 
@@ -132,30 +138,18 @@ class MatplotlibLineRenderer(StreamingRenderer):
         """
         Update plot elements with new streaming data.
         
-        Refreshes the signal line, change point markers, and dynamic title based
-        on the latest data within the specified time window. This method is called
-        repeatedly during the streaming loop.
-        
         Args:
-            times (np.ndarray): Array of timestamps corresponding to each sample.
-            samples (np.ndarray): Array of raw signal values.
-            features (np.ndarray): Array of derived feature values (may contain None).
-            change_points (np.ndarray): Array of timestamps where change points
-                                        were detected.
-            window_duration_sec (float): Duration of the visible time window in
-                                         seconds. Only data within this window
-                                         will be displayed.
+            times (np.ndarray): Array of timestamps.
+            samples (np.ndarray): Array of signal values.
+            features (np.ndarray): Array of feature values.
+            change_points (np.ndarray): Array of change point timestamps.
+            window_duration_sec (float): Visible time window duration.
         
         Returns:
-            List[Any]: Updated list of artist objects that have been modified.
-                       Used by animation frameworks to determine what to redraw.
+            List[Any]: Updated artist objects.
         
         Example:
-            >>> times = np.array([0, 1, 2, 3, 4, 5])
-            >>> samples = np.array([0, 1, 0, -1, 0, 1])
-            >>> features = np.array([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-            >>> change_points = np.array([2.5, 4.5])
-            >>> artists = renderer.update(times, samples, features, change_points, 3.0)
+            >>> updated_artists = renderer.update(times, samples, features, change_points, window_duration
         """
         if len(times) == 0:
             return self.artists

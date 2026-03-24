@@ -1,6 +1,40 @@
-"""Matplotlib renderer with vertical line change point visualization."""
+"""
+Matplotlib Streaming Renderer with Change Point Visualization 
+by usage of vertical lines.
 
-__author__ = "F.Feenstra"
+This module provides a streaming renderer class for visualizing time-series
+data with automatic annotation of detected change points (anomalies). It is
+designed for integration with real-time data pipelines where change points
+need to be highlighted dynamically as new data arrives.
+
+The renderer maintains a sliding time window, automatically removing outdated
+visual elements and adding new ones for change points within the visible range.
+This ensures efficient memory usage during long-running streaming sessions.
+
+Features:
+    - Dynamic title updates with feature values
+    - Automatic cleanup of out-of-window change point markers
+    - Configurable styling for signal lines and change point indicators
+
+Important Dependencies:
+    - streamsim.src.core.interfaces.StreamingRenderer: Base interface
+
+Author: F.Feenstra
+
+Example:
+    >>> import matplotlib.pyplot as plt
+    >>> from streamsim.src.renderers.vline import VerticalLineRenderer
+    >>> renderer = VerticalLineRenderer(
+    ...     line_color='black',
+    ...     vline_color='red',
+    ...     title_template='Heart Rate: {feature:.1f} bpm'
+    ... )
+    >>> fig, ax = plt.subplots()
+    >>> artists = renderer.initialize(ax)
+    >>> # In streaming loop:
+    >>> # updated_artists = renderer.update(times, samples, features, change_points, window_duration)
+"""
+
 
 from typing import List, Any
 import numpy as np
@@ -10,51 +44,44 @@ from streamsim.src.core.interfaces import StreamingRenderer
 class VerticalLineRenderer(StreamingRenderer):
     """
     Streaming renderer that displays vertical lines at detected change points.
-     
-    Args:
-        line_color (str): Color of the signal line (default: 'blue').
-        line_width (float): Stroke width of the signal line (default: 2.0).
-        vline_color (str): Color of the vertical change lines (default: 'red').
-        vline_style (str): Line style for vertical lines (default: '--' dashed).
-        vline_width (float): Width of vertical lines (default: 1.5).
-        vline_alpha (float): Transparency of vertical lines (default: 0.7).
-        signal_label (str): Legend label for the signal line (default: 'Signal').
-        vline_label (str): Legend label for change lines (default: 'Anomaly').
-        show_legend (bool): Whether to display the plot legend (default: True).
-        title_template (str): Format string for dynamic title with {feature} placeholder.
     
-    Example:
-        >>> renderer = VerticalLineRenderer(
-        ...     line_color='black',
-        ...     vline_color='red',
-        ...     vline_style='--',
-        ...     title_template='Heart Rate: {feature:.1f} bpm'
-        ... )
-        >>> fig, ax = plt.subplots()
-        >>> artists = renderer.initialize(ax)
+    This class extends the StreamingRenderer interface to provide real-time
+    visualization of time-series signals with annotated change points. Each
+    change point is marked with a configurable vertical line that persists
+    only while within the visible time window.
+    
+    The renderer tracks displayed change points internally to prevent duplicate
+    annotations when the same change point is received across multiple update
+    cycles. Out-of-window change points are automatically removed to maintain
+    rendering performance.
     """
     
     def __init__(
         self,
+        #signal styling
         line_color: str = 'blue',
         line_width: float = 2,
+        signal_label: str = 'Signal',
+        #vertical line styling
         vline_color: str = 'red',
         vline_style: str = '--',
         vline_width: float = 1.5,
         vline_alpha: float = 0.7,
-        signal_label: str = 'Signal',
         vline_label: str = 'Anomaly',
+        
         show_legend: bool = True,
         title_template: str = "Streaming Data — Feature: {feature:.4f}"
     ):
         self.line_color = line_color
         self.line_width = line_width
+        self.signal_label = signal_label
+        
         self.vline_color = vline_color
         self.vline_style = vline_style
         self.vline_width = vline_width
         self.vline_alpha = vline_alpha
-        self.signal_label = signal_label
         self.vline_label = vline_label
+        
         self.show_legend = show_legend
         self.title_template = title_template
         
@@ -66,6 +93,7 @@ class VerticalLineRenderer(StreamingRenderer):
         
         # Track displayed change points to avoid duplicates
         self._displayed_changes = set()
+        
     
     def initialize(self, ax: Any) -> List[Any]:
         """
@@ -76,6 +104,11 @@ class VerticalLineRenderer(StreamingRenderer):
         
         Returns:
             List[Any]: List of artist objects for animation tracking.
+
+        Example:
+            >>> fig, ax = plt.subplots()
+            >>> renderer = VerticalLineRenderer()
+            >>> artists = renderer.initialize(ax)
         """
         self.ax = ax
         self.line, = ax.plot([], [], lw=self.line_width, 
@@ -116,9 +149,10 @@ class VerticalLineRenderer(StreamingRenderer):
         
         Returns:
             List[Any]: Updated artist objects.
+        
+        Example:
+            >>> updated_artists = renderer.update(times, samples, features, change_points, window_duration
         """
-        # print(f"[Renderer] Received change_points: {change_points}, len={len(change_points)}")
-
         if len(times) == 0:
             return self.artists
         
@@ -171,8 +205,19 @@ class VerticalLineRenderer(StreamingRenderer):
         
         return self.artists + self.vlines
     
+
     def cleanup(self) -> None:
-        """Release resources and clear references."""
+        """
+        Release resources and clear references.
+        
+        Removes all vertical line artists from the axes, clears internal
+        tracking sets, and nullifies references to prevent memory leaks
+        during long-running streaming sessions.
+        
+        Note:
+            Call this method when the renderer is no longer needed to ensure
+            proper garbage collection of matplotlib artist objects.
+        """
         for vline in self.vlines:
             vline.remove()
         self.vlines.clear()

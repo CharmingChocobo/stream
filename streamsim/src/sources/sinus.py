@@ -1,4 +1,20 @@
-__author__ = "F.Feenstra"
+"""
+Sinuswave Signal Generation Module
+
+This module provides a flexible, generator-based data source for creating 
+synthetic sinusoidal wave signals. It is designed for testing, simulation, 
+or educational purposes where controlled, periodic waveforms are required.
+
+The `SinusDataSource`, implements a callable interface that 
+yields (sample, timestamp) pairs sequentially, allowing for  
+streaming of signal data without loading the entire waveform into memory at once.
+
+Author: F.Feenstra
+
+Example:
+    >>> data_source = create_sinus_data_source(frequency=1.0, fs=100.0, duration=20)
+"""
+
 
 import numpy as np
 
@@ -29,10 +45,7 @@ class SinusDataSource:
 
     def __call__(self):
         """
-        Return the next (sample, timestamp) pair.
-        
-        Returns:
-            tuple: (sample, timestamp) or None if data exhausted.
+        Return the next (sample, timestamp) pair or None if data exhausted.
         """
         try:
             return next(self._iterator)

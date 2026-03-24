@@ -1,6 +1,20 @@
-"""Simple pass-through change point detector for peak features."""
+"""
+Simple Pass-Through Change Point Detector for Peak Features
 
-__author__ = "F.Feenstra"
+This module provides a minimalistic change point detector designed specifically
+for scenarios where the presence of a valid feature value (such as a detected peak)
+directly indicates a change point or event of interest. It implements the
+`StreamingChangePointDetector` interface to integrate with the streaming simulator. 
+If a valid feature value is provided (i.e., not None), it flags this as a 
+change point by returning True and setting the `drift_detected` property to True. 
+This allows downstream components to react to detected peaks without additional 
+logic for interpreting feature values.  
+
+Important Dependencies:
+    - streamsim.src.core.interfaces.StreamingChangePointDetector: Base interface
+
+Author: F.Feenstra
+"""
 
 from typing import Optional
 from streamsim.src.core.interfaces import StreamingChangePointDetector
@@ -20,7 +34,7 @@ class PeakPassThrough(StreamingChangePointDetector):
         Crucially, this also updates the drift_detected property.
         """
         is_peak = feature_value is not None
-        self._drift_detected = is_peak  # <--- THIS IS THE KEY LINE
+        self._drift_detected = is_peak  
         return is_peak
     
     @property
