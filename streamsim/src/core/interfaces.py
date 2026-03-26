@@ -120,7 +120,7 @@ class StreamingRenderer(ABC):
     This class defines the interface for components responsible for rendering
     dynamic plots in a streaming environment. It separates the logic of data
     preparation from the rendering engine, allowing for efficient updates
-    (e.g., via blitting) without redrawing the entire figure.
+    without redrawing the entire figure.
     
     Methods:
         initialize(ax): Set up the initial plot structure on the provided axes.

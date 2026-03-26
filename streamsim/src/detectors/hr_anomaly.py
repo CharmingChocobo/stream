@@ -1,6 +1,22 @@
-"""Robust change point detector for heart rate anomalies."""
+"""
+Robust change point detector for identifying persistent heart rate anomalies.
 
-__author__ = "F.Feenstra"
+This module implements a `StreamingChangePointDetector` that establishes a fixed
+baseline during an initial warmup period and compares subsequent heart rate values
+against it. Unlike rolling-window approaches, it maintains a stable reference to
+detect sustained deviations (anomalies) rather than transient noise.
+
+Key behaviors:
+- **Warmup Phase**: Collects a specified number of beats to calculate mean and
+  standard deviation.
+- **Anomaly Detection**: Flags a change point only after a configurable streak of
+  consecutive outliers (values exceeding a Z-score threshold).
+- **Recovery**: Clears the alert state after a sustained return to normal values.
+- **Optional Baseline Adaptation**: Can slowly adjust the baseline mean over time
+  to accommodate long-term trends while still detecting sudden shifts.
+
+Author: F.Feenstra
+"""
 
 from collections import deque
 import numpy as np

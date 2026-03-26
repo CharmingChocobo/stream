@@ -10,10 +10,6 @@ Detection Method:
     deviates from the recent mean by more than a configurable number of standard
     deviations (threshold).
 
-Use Cases:
-    - Real-time anomaly detection in sensor streams
-    - Quality control monitoring for manufacturing processes
-
 Important Dependencies:
     - collections.deque: Efficient circular buffer
     - streamsim.src.core.interfaces.StreamingChangePointDetector: Base interface

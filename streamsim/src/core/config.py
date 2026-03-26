@@ -1,4 +1,4 @@
-"""Configuration dataclasses for the streaming framework."""
+"""Configuration of plotting setup for the streaming framework."""
 
 __author__ = "F.Feenstra"
 
