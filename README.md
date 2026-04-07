@@ -3,7 +3,7 @@
 A flexible, multi-threaded streaming framework for real-time time-series visualization with pluggable feature extraction, change point detection, and rendering components.
 
 
-[![Documentation](https://img.shields.io/badge/documentation-Sphinx-blue)](git remote set-url origin https://github.com/kcbb/stream.git)
+[![Documentation](https://img.shields.io/badge/documentation-Sphinx-blue)](https://kcbbe.github.io/stream/)
 
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Issues](https://img.shields.io/badge/issues-GitHub-red)](https://github.com/fenna/stream/issues)
