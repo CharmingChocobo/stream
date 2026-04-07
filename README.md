@@ -1,6 +1,9 @@
 # StreamSim
 A flexible, multi-threaded streaming framework for real-time time-series visualization with pluggable feature extraction, change point detection, and rendering components.
 
+[![Documentation](https://img.shields.io/badge/docs-Sphinx-blue)](https://fenna.github.io/stream/)
+
+
 ## Overview
 StreamSim provides a producer-consumer architecture for processing streaming data with:
 
