@@ -1,19 +1,21 @@
 """
-Robust change point detector for identifying persistent heart rate anomalies.
+Robust Heart Rate Anomaly Detector
 
-This module implements a `StreamingChangePointDetector` that establishes a fixed
-baseline during an initial warmup period and compares subsequent heart rate values
-against it. Unlike rolling-window approaches, it maintains a stable reference to
-detect sustained deviations (anomalies) rather than transient noise.
+This module provides a streaming change point detector specifically designed for
+identifying persistent heart rate deviations from a fixed baseline established
+during an initial warmup period.
 
-Key behaviors:
-- **Warmup Phase**: Collects a specified number of beats to calculate mean and
-  standard deviation.
-- **Anomaly Detection**: Flags a change point only after a configurable streak of
-  consecutive outliers (values exceeding a Z-score threshold).
-- **Recovery**: Clears the alert state after a sustained return to normal values.
-- **Optional Baseline Adaptation**: Can slowly adjust the baseline mean over time
-  to accommodate long-term trends while still detecting sudden shifts.
+Detection Method:
+    The detector collects heart rate samples during a configurable warmup phase
+    to establish a baseline mean and standard deviation. Subsequent samples are
+    compared against this baseline using z-scores. A change point is confirmed
+    only after a configurable streak of consecutive outliers, reducing false
+    positives from transient noise.
+
+
+Important Dependencies:
+    - collections.deque: Efficient circular buffer for warmup data
+    - streamsim.src.core.interfaces.StreamingChangePointDetector: Base interface
 
 Author: F.Feenstra
 """
@@ -33,7 +35,7 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
     """
     
     def __init__(
-        self, 
+        self,
         threshold_std: float = 3.0,      # How many std devs from baseline
         warmup_beats: int = 15,          # Beats to establish baseline
         confirmation_count: int = 3,     # Consecutive outliers to confirm
