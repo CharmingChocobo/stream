@@ -1,8 +1,12 @@
 # StreamSim
+
 A flexible, multi-threaded streaming framework for real-time time-series visualization with pluggable feature extraction, change point detection, and rendering components.
 
-[![Documentation](https://img.shields.io/badge/docs-Sphinx-blue)](https://fenna.github.io/stream/)
 
+📖 [Full Documentation](https://fenna.github.io/stream/) | 📄 [License](LICENSE) | 🐛 [Issues](https://github.com/fenna/stream/issues)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 
 ## Overview
 StreamSim provides a producer-consumer architecture for processing streaming data with:
@@ -48,16 +52,22 @@ StreamSim provides a producer-consumer architecture for processing streaming dat
 
 
 ## Installation
-```
-# Clone the repository
-git clone https://github.com/fenna/stream.git
-cd stream
-```
 
-## Install dependencies
-```
-pip install -r requirements.txt
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/fenna/stream.git
+   cd stream
+   ```
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. If you plan to use real ECG data, ensure wfdb is installed:
+   ```bash
+   pip install wfdb
+   ```
+
 
 ### Dependencies
 - numpy - Numerical computations
@@ -117,7 +127,8 @@ Components
 ## Usage Examples
 
 Creating a Custom Pipeline
-```{python}
+```markdown
+```python
 from streamsim.src.core.simulator import StreamingSimulator
 from streamsim.src.core.config import PlottingSetup
 from streamsim.src.features.myscript import myDeriver
@@ -158,7 +169,8 @@ sim.start()
 
 ## Development
 Adding a New Feature Deriver
-```{python}
+```markdown
+```python
 from streamsim.src.core.interfaces import StreamingFeatureDeriver
 
 class MyFeatureDeriver(StreamingFeatureDeriver):
@@ -177,7 +189,8 @@ class MyFeatureDeriver(StreamingFeatureDeriver):
 
 Adding a New Detector
 
-```{python}
+```markdown
+```python
 from streamsim.src.core.interfaces import StreamingChangePointDetector
 
 class MyDetector(StreamingChangePointDetector):
@@ -193,7 +206,9 @@ class MyDetector(StreamingChangePointDetector):
 ```
 
 Adding a New Renderer
-```{python}
+
+```markdown
+```python
 from streamsim.src.core.interfaces import StreamingRenderer
 
 class MyRenderer(StreamingRenderer):
@@ -210,6 +225,28 @@ class MyRenderer(StreamingRenderer):
         pass
 ```
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Citation
+
+If you use StreamSim in your research, please cite:
+
+```bibtex
+@misc{streamsim2026,
+  author = {Feenstra, Fenna},
+  title = {StreamSim: A Flexible Streaming Framework},
+  year = {2026},
+  url = {https://github.com/fenna/stream}
+}
+```
+
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
@@ -217,5 +254,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 MIT-BIH Arrhythmia Database for ECG data
 Proton for development support (Lumo)
 
-## Contact
-f.feenstra@pl.hanze.nl
+## Support
+
+- **Bug Reports & Feature Requests**: [Open an Issue](https://github.com/fenna/stream/issues)
+- **Email**: f.feenstra@pl.hanze.nl
