@@ -3,10 +3,13 @@
 A flexible, multi-threaded streaming framework for real-time time-series visualization with pluggable feature extraction, change point detection, and rendering components.
 
 
-📖 [Full Documentation](https://fenna.github.io/stream/) | 📄 [License](LICENSE) | 🐛 [Issues](https://github.com/fenna/stream/issues)
+[![Documentation](https://img.shields.io/badge/documentation-Sphinx-blue)](https://fenna.github.io/stream/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Issues](https://img.shields.io/badge/issues-GitHub-red)](https://github.com/fenna/stream/issues)
+
 [![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+
 
 ## Overview
 StreamSim provides a producer-consumer architecture for processing streaming data with:
@@ -189,7 +192,7 @@ class MyFeatureDeriver(StreamingFeatureDeriver):
 
 Adding a New Detector
 
-```markdown
+
 ```python
 from streamsim.src.core.interfaces import StreamingChangePointDetector
 
