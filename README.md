@@ -127,7 +127,7 @@ Components
 ## Usage Examples
 
 Creating a Custom Pipeline
-```markdown
+
 ```python
 from streamsim.src.core.simulator import StreamingSimulator
 from streamsim.src.core.config import PlottingSetup
@@ -169,7 +169,7 @@ sim.start()
 
 ## Development
 Adding a New Feature Deriver
-```markdown
+
 ```python
 from streamsim.src.core.interfaces import StreamingFeatureDeriver
 
@@ -207,7 +207,6 @@ class MyDetector(StreamingChangePointDetector):
 
 Adding a New Renderer
 
-```markdown
 ```python
 from streamsim.src.core.interfaces import StreamingRenderer
 
