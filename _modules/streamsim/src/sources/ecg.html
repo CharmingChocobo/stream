@@ -1,0 +1,259 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.sources.ecg &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">streamsim.src.sources.ecg</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for streamsim.src.sources.ecg</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ECG Data Processing Module</span>
+
+<span class="sd">This module provides utilities for loading, modifying, and streaming</span>
+<span class="sd">electrocardiogram (ECG) signals from the MIT-BIH Arrhythmia Database.</span>
+<span class="sd">It includes functionality for creating synthetic anomalies (e.g., </span>
+<span class="sd">temporary heart rate acceleration). </span>
+<span class="sd">The `ECG_DataSource`, implements a callable interface that </span>
+<span class="sd">yields (sample, timestamp) pairs sequentially, allowing for  </span>
+<span class="sd">streaming of signal data without loading the entire signalstream into memory at once.</span>
+
+<span class="sd">Dependencies:</span>
+<span class="sd">    - wfdb: Waveform database access for MIT-BIH records</span>
+
+<span class="sd">Author: F.Feenstra</span>
+
+<span class="sd">Example:</span>
+<span class="sd">    &gt;&gt;&gt; data_source = create_ecg_data_source()</span>
+<span class="sd">    &gt;&gt;&gt; modified_source = create_ecg_with_temporary_anomaly(start=5, stop=10)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>  
+<span class="kn">import</span><span class="w"> </span><span class="nn">wfdb</span>
+
+
+<div class="viewcode-block" id="ECG_DataSource">
+<a class="viewcode-back" href="../../../../modules/src.sources.ecg.html#streamsim.src.sources.ecg.ECG_DataSource">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ECG_DataSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generator-based wrapper for ECG data.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the ECG data source.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            signal (np.ndarray): Array of ECG signal amplitude values.</span>
+<span class="sd">            fs (float): Sampling frequency in Hz.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal</span> <span class="o">=</span> <span class="n">signal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_iterator</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a generator that yields (sample, timestamp) pairs.</span>
+<span class="sd">        </span>
+<span class="sd">        Iterates through the signal array, computing the timestamp for each</span>
+<span class="sd">        sample based on its index and the sampling frequency.</span>
+<span class="sd">        </span>
+<span class="sd">        Yields:</span>
+<span class="sd">            tuple: A pair containing (sample_value, timestamp_in_seconds).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signal</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">sample</span><span class="p">,</span> <span class="n">i</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the next sample from the iterator.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple|None: (sample, timestamp) if available, None if exhausted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="create_ecg_data_source">
+<a class="viewcode-back" href="../../../../modules/src.sources.ecg.html#streamsim.src.sources.ecg.create_ecg_data_source">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_ecg_data_source</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an ECG data source with fallback to mock data.</span>
+<span class="sd">    </span>
+<span class="sd">    Attempts to load real ECG data from the MIT-BIH Arrhythmia Database</span>
+<span class="sd">    (record &#39;100&#39;). If the wfdb library is unavailable or the record cannot</span>
+<span class="sd">    be loaded, generates a synthetic ECG-like signal for testing purposes.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ECG_DataSource: A data source containing either real or mock ECG data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">wfdb</span><span class="o">.</span><span class="n">rdrecord</span><span class="p">(</span><span class="s2">&quot;100&quot;</span><span class="p">,</span> <span class="n">pn_dir</span><span class="o">=</span><span class="s2">&quot;mitdb&quot;</span><span class="p">)</span>
+        <span class="n">ecg_signal</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">p_signal</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">fs</span>
+
+        <span class="k">return</span> <span class="n">ECG_DataSource</span><span class="p">(</span><span class="n">ecg_signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;wfdb not found. Generating mock ECG-like signal.&quot;</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+        <span class="c1"># Simple mock ECG: sine + spikes</span>
+        <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">1.2</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span> 
+        <span class="c1"># Add some spikes</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">),</span> <span class="mi">100</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">10</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">):</span>
+                <span class="n">signal</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">2.0</span>
+        <span class="k">return</span> <span class="n">ECG_DataSource</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">)</span></div>
+
+    
+
+
+<div class="viewcode-block" id="create_ecg_with_temporary_anomaly">
+<a class="viewcode-back" href="../../../../modules/src.sources.ecg.html#streamsim.src.sources.ecg.create_ecg_with_temporary_anomaly">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_ecg_with_temporary_anomaly</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create an ECG data source with a temporary heart rate acceleration.</span>
+<span class="sd">    </span>
+<span class="sd">    Generates a modified ECG signal where the segment between &#39;start&#39; and </span>
+<span class="sd">    &#39;stop&#39; seconds is accelerated (compressed in time) to simulate increased</span>
+<span class="sd">    heart rate. The rest of the signal remains unchanged.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        start (float): Start time in seconds where acceleration begins.</span>
+<span class="sd">        stop (float): End time in seconds where acceleration ends.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ECG_DataSource: A data source containing the modified ECG signal.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">record</span> <span class="o">=</span> <span class="n">wfdb</span><span class="o">.</span><span class="n">rdrecord</span><span class="p">(</span><span class="s2">&quot;100&quot;</span><span class="p">,</span> <span class="n">pn_dir</span><span class="o">=</span><span class="s2">&quot;mitdb&quot;</span><span class="p">)</span>
+        <span class="n">ecg_signal</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">p_signal</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">fs</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;wfdb not found. Generating mock ECG-like signal.&quot;</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span>
+        <span class="c1"># Simple mock ECG: sine + spikes</span>
+        <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">1.2</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span> 
+        <span class="c1"># Add some spikes</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">),</span> <span class="mi">100</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">10</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">):</span>
+                <span class="n">signal</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">2.0</span>  
+        <span class="n">ecg_signal</span> <span class="o">=</span> <span class="n">signal</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="mf">360.0</span>
+    
+
+    <span class="c1"># Define phase boundaries</span>
+    <span class="n">phase1_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span> <span class="o">*</span> <span class="n">fs</span><span class="p">)</span>  <span class="c1"># 0-start: Normal</span>
+    <span class="n">phase2_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span> <span class="o">*</span> <span class="n">fs</span><span class="p">)</span>   <span class="c1"># start-stop sec: Accelerated</span>
+                                  <span class="c1"># stop++ sec: Normal again  </span>
+    
+    <span class="n">acceleration_factor</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Acceleration factor (2x = double heart rate)</span>
+    <span class="n">segment_normal_1</span> <span class="o">=</span> <span class="n">ecg_signal</span><span class="p">[:</span><span class="n">phase1_end</span><span class="p">]</span>
+    <span class="n">phase2_start</span> <span class="o">=</span> <span class="n">phase1_end</span>
+    <span class="n">phase2_end_original</span> <span class="o">=</span> <span class="n">phase2_end</span>  
+    <span class="n">segment_fast</span> <span class="o">=</span> <span class="n">ecg_signal</span><span class="p">[</span><span class="n">phase2_start</span><span class="p">:</span><span class="n">phase2_end_original</span><span class="p">:</span><span class="n">acceleration_factor</span><span class="p">]</span>
+    <span class="n">segment_normal_2</span> <span class="o">=</span> <span class="n">ecg_signal</span><span class="p">[</span><span class="n">phase2_end_original</span><span class="p">:]</span>
+    
+    <span class="n">modified_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">segment_normal_1</span><span class="p">,</span> <span class="n">segment_fast</span><span class="p">,</span> <span class="n">segment_normal_2</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">ECG_DataSource</span><span class="p">(</span><span class="n">modified_signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

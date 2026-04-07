@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.features.heart_rate &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">streamsim.src.features.heart_rate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for streamsim.src.features.heart_rate</h1><div class="highlight"><pre>
+<span></span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">R-Peak Detection and Heart Rate Calculation for ECG Signals</span>
+
+<span class="sd">This module provides a streaming feature deriver that detects R-peaks in </span>
+<span class="sd">electrocardiogram (ECG) signals and calculates instantaneous heart rate. It </span>
+<span class="sd">implements a complete signal processing pipeline inspired by the Pan-Tompkins </span>
+<span class="sd">algorithm, adapted for real-time streaming applications.</span>
+
+<span class="sd">Signal Processing Pipeline:</span>
+<span class="sd">    Raw ECG → Bandpass Filter → Derivative → Squaring → Moving Average → Thresholding → Peak Detection</span>
+
+<span class="sd">Heart Rate Calculation:</span>
+<span class="sd">    - Measures RR intervals between consecutive R-peaks</span>
+<span class="sd">    - Computes instantaneous heart rate: HR = 60 / RR_interval (BPM)</span>
+<span class="sd">    - Applies moving average smoothing over recent intervals for stability</span>
+<span class="sd">    - Validates intervals against physiological bounds (30-220 BPM)</span>
+
+<span class="sd">Features:</span>
+<span class="sd">    - Adaptive thresholding for robust peak detection in varying signal conditions</span>
+<span class="sd">    - Refractory period enforcement to prevent double-counting peaks</span>
+<span class="sd">    - Physiological validation of RR intervals</span>
+<span class="sd">    - Configurable smoothing window for heart rate stability</span>
+<span class="sd">    - Comprehensive state reset capability for multi-segment analysis</span>
+
+<span class="sd">Important Dependencies:</span>
+<span class="sd">    - collections.deque: Efficient circular buffers for streaming data</span>
+<span class="sd">    - streamsim.src.core.interfaces.StreamingFeatureDeriver: Base interface</span>
+
+<span class="sd">Author: F.Feenstra with inspiration from Pan-Tompkins algorithm</span>
+
+<span class="sd">Example:</span>
+<span class="sd">    &gt;&gt;&gt; from streamsim.src.features.heart_rate import HRFeatureDeriver</span>
+<span class="sd">    &gt;&gt;&gt; deriver = HRFeatureDeriver(fs=360.0, threshold_factor=0.7)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">streamsim.src.core.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">StreamingFeatureDeriver</span>
+
+
+<div class="viewcode-block" id="HRFeatureDeriver">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRFeatureDeriver</span><span class="p">(</span><span class="n">StreamingFeatureDeriver</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Feature deriver that detects R-peaks in ECG signals and calculates heart rate.</span>
+<span class="sd">    </span>
+<span class="sd">    Signal Processing Pipeline:</span>
+<span class="sd">        Raw ECG → Bandpass → Derivative → Square → Moving Average → Threshold</span>
+<span class="sd">    </span>
+<span class="sd">    Heart Rate Calculation:</span>
+<span class="sd">        - Measures RR intervals between consecutive R-peaks</span>
+<span class="sd">        - Computes instantaneous heart rate: HR = 60 / RR_interval (BPM)</span>
+<span class="sd">        - Optionally smooths using a moving average of recent intervals</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">360.0</span><span class="p">,</span>
+        <span class="n">min_rr_sec</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">threshold_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+        <span class="n">rr_window_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">min_hr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="n">max_hr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">220.0</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the HRFeatureDeriver </span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            fs (float): Sampling frequency in Hz (default: 360.0).</span>
+<span class="sd">            min_rr_sec (float): Minimum RR interval in seconds (refractory period).</span>
+<span class="sd">                                Prevents double-detection of the same QRS complex.</span>
+<span class="sd">                                Default: 0.2 (200ms).</span>
+<span class="sd">            threshold_factor (float): Adaptive threshold sensitivity (0.0-1.0).</span>
+<span class="sd">                                      Higher values = more selective.</span>
+<span class="sd">                                      Default: 0.7.</span>
+<span class="sd">            rr_window_size (int): Number of RR intervals to average for heart rate smoothing.</span>
+<span class="sd">                                  Default: 5.</span>
+<span class="sd">            min_hr (float): Minimum valid heart rate in BPM. Default: 30.0.</span>
+<span class="sd">            max_hr (float): Maximum valid heart rate in BPM. Default: 220.0.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fs</span> <span class="o">=</span> <span class="n">fs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_rr_sec</span> <span class="o">=</span> <span class="n">min_rr_sec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_factor</span> <span class="o">=</span> <span class="n">threshold_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rr_window_size</span> <span class="o">=</span> <span class="n">rr_window_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_hr</span> <span class="o">=</span> <span class="n">min_hr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_hr</span> <span class="o">=</span> <span class="n">max_hr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.08</span> <span class="o">*</span> <span class="n">fs</span><span class="p">)</span>
+        
+        <span class="c1"># Signal processing buffers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_raw</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_derivative</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_squared</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_integrated</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+        
+        <span class="c1"># Adaptive threshold state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="mf">0.0</span>
+        
+        <span class="c1"># Peak detection state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_sample</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">min_rr_sec</span><span class="p">)</span>
+        
+        <span class="c1"># Heart rate calculation state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">rr_window_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heart_rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_timestamp</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_timestamp</span> <span class="o">=</span> <span class="mf">0.0</span>
+    
+<div class="viewcode-block" id="HRFeatureDeriver.add_sample">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.add_sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process a new ECG sample through the detection pipeline.</span>
+<span class="sd">        </span>
+<span class="sd">        Executes the full signal processing chain: bandpass filtering, </span>
+<span class="sd">        differentiation, squaring, moving average integration, and adaptive </span>
+<span class="sd">        thresholding. If an R-peak is detected, updates the heart rate calculation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample (float): The raw ECG signal sample value.</span>
+<span class="sd">            timestamp (float, optional): Timestamp of the sample in seconds.</span>
+<span class="sd">                                         If None, calculates based on sample count and fs.</span>
+<span class="sd">                                         Default: None.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            The first ~200ms of data (depending on fs) will not produce valid </span>
+<span class="sd">            detections as the buffers fill up. The `get_heart_rate()` method </span>
+<span class="sd">            returns None until sufficient RR intervals are collected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_timestamp</span> <span class="o">=</span> <span class="n">timestamp</span> <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_timestamp</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Pipeline Pompkin: Raw → Filtered → Derivative → Squared → Integrated</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_raw</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        
+        <span class="n">filtered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bandpass_filter</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span>
+        
+        <span class="n">derivative</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_derivative</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_derivative</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">derivative</span><span class="p">)</span>
+        
+        <span class="n">squared</span> <span class="o">=</span> <span class="n">derivative</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_squared</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">squared</span><span class="p">)</span>
+        
+        <span class="n">integrated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_moving_average</span><span class="p">(</span><span class="n">squared</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_integrated</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">integrated</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_threshold</span><span class="p">(</span><span class="n">integrated</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detect_peak</span><span class="p">(</span><span class="n">integrated</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peak_timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_timestamp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_heart_rate</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="HRFeatureDeriver.get_feature">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.get_feature">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the latest heart rate &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_heart_rate</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="HRFeatureDeriver.get_heart_rate">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.get_heart_rate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_heart_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the current heart rate in beats per minute (BPM).</span>
+<span class="sd">        </span>
+<span class="sd">        The heart rate is calculated as a moving average of the last N RR intervals,</span>
+<span class="sd">        where N is determined by rr_window_size.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[float]: Heart rate in BPM, or None if insufficient data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heart_rate</span></div>
+
+    
+<div class="viewcode-block" id="HRFeatureDeriver.get_rr_interval">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.get_rr_interval">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_rr_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the time difference between the last two detected R-peaks.</span>
+<span class="sd">        Useful for analyzing beat-to-beat variability.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[float]: Last RR interval in seconds, or None if no interval recorded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    
+<div class="viewcode-block" id="HRFeatureDeriver.get_features">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.get_features">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_features</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get both the peak timestamp and heart rate.</span>
+<span class="sd">        </span>
+<span class="sd">        Convenience method for retrieving all derived features at once.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[Optional[float], Optional[float]]: (peak_timestamp, heart_rate)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peak_timestamp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heart_rate</span></div>
+
+    
+<div class="viewcode-block" id="HRFeatureDeriver.reset">
+<a class="viewcode-back" href="../../../../modules/src.features.heart_rate.html#streamsim.src.features.heart_rate.HRFeatureDeriver.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset all internal state and buffers.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_raw</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_derivative</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_squared</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_integrated</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_sample</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_rr_sec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_timestamp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heart_rate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peak_timestamp</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_heart_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate and update the heart rate based on the latest RR interval.</span>
+<span class="sd">        </span>
+<span class="sd">        Computes the RR interval between the current peak and the last detected</span>
+<span class="sd">        peak. Validates the interval against physiological bounds (min/max HR).</span>
+<span class="sd">        If valid, adds the interval to the rolling average buffer and recalculates</span>
+<span class="sd">        the smoothed heart rate.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            Heart rate is only updated when a new R-peak is successfully detected.</span>
+<span class="sd">            The `min_hr` and `max_hr` constraints prevent spurious readings from</span>
+<span class="sd">            noise or artifact.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rr_interval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_timestamp</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_timestamp</span>
+            
+            <span class="c1"># Validate RR interval (physiological bounds)</span>
+            <span class="n">min_rr</span> <span class="o">=</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_hr</span>  <span class="c1"># e.g., 0.27s for max 220 BPM</span>
+            <span class="n">max_rr</span> <span class="o">=</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_hr</span>  <span class="c1"># e.g., 2.0s for min 30 BPM</span>
+            
+            <span class="k">if</span> <span class="n">min_rr</span> <span class="o">&lt;=</span> <span class="n">rr_interval</span> <span class="o">&lt;=</span> <span class="n">max_rr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rr_interval</span><span class="p">)</span>
+                
+                <span class="c1"># Calculate smoothed heart rate</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">avg_rr</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rr_intervals</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_heart_rate</span> <span class="o">=</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="n">avg_rr</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_timestamp</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_bandpass_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply bandpass filtering to remove baseline wander and high-frequency noise.</span>
+<span class="sd">        </span>
+<span class="sd">        Implements a two-stage filter:</span>
+<span class="sd">        1. **High-pass**: Subtracts a moving average baseline (removes slow drift).</span>
+<span class="sd">        2. **Low-pass**: Applies exponential smoothing (0.6, 0.3, 0.1 weights) to</span>
+<span class="sd">           reduce high-frequency noise while preserving QRS sharpness.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample (float): The raw ECG sample value.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The filtered sample value.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            Returns the raw sample if the buffer is not yet full (warmup phase).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_raw</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sample</span>
+        
+        <span class="n">window</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_raw</span><span class="p">)[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span><span class="p">:]</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
+        <span class="n">high_passed</span> <span class="o">=</span> <span class="n">sample</span> <span class="o">-</span> <span class="n">baseline</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">smoothed</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="n">high_passed</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">smoothed</span> <span class="o">=</span> <span class="n">high_passed</span>
+        
+        <span class="k">return</span> <span class="n">smoothed</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the derivative of the filtered signal using a 5-point Savitzky-Golay filter.</span>
+<span class="sd">        </span>
+<span class="sd">        Calculates the slope of the signal to emphasize the steep QRS complexes.</span>
+<span class="sd">        Uses the coefficients [-1, -2, 0, 2, 1] divided by 8, which corresponds</span>
+<span class="sd">        to the first derivative of a quadratic polynomial fit over 5 points.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample (float): The filtered sample value (unused directly, buffer is used).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The estimated derivative value.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            Returns 0.0 if fewer than 5 samples are available in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        
+        <span class="n">buf</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_filtered</span><span class="p">)[</span><span class="o">-</span><span class="mi">5</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="n">buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">buf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">buf</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">buf</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="mf">8.0</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_moving_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply a moving average to the squared signal for integration.</span>
+<span class="sd">        </span>
+<span class="sd">        Widens the QRS complex peaks to make them easier to detect via thresholding.</span>
+<span class="sd">        The window size is determined by `window_samples` (~80ms).</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample (float): The squared sample value (unused directly, buffer is used).</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The integrated (moving average) value.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            Returns the raw squared sample if the buffer is not yet full.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_squared</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sample</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_squared</span><span class="p">)[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span><span class="p">:])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrated</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the adaptive detection threshold based on signal and noise levels.</span>
+<span class="sd">        </span>
+<span class="sd">        Implements a dual-level tracking system:</span>
+<span class="sd">        - **Signal Level**: Tracks the amplitude of detected peaks.</span>
+<span class="sd">        - **Noise Level**: Tracks the amplitude of non-peak activity.</span>
+<span class="sd">        </span>
+<span class="sd">        The threshold is dynamically adjusted as a weighted combination of these</span>
+<span class="sd">        levels, allowing the detector to adapt to changing signal quality.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            integrated (float): The current integrated (moving average) value.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            During the initial warmup phase (first 2x window samples), the threshold</span>
+<span class="sd">            is initialized conservatively to avoid false positives.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_samples</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span><span class="p">,</span> <span class="n">integrated</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">=</span> <span class="n">integrated</span> <span class="o">*</span> <span class="mf">0.1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_factor</span>
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="n">integrated</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">=</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">+</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">integrated</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">=</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">+</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">integrated</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_factor</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_level</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detect_peak</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrated</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine if the current sample represents an R-peak.</span>
+<span class="sd">        </span>
+<span class="sd">        Applies three criteria for detection:</span>
+<span class="sd">        1. **Threshold**: Must exceed the adaptive threshold.</span>
+<span class="sd">        2. **Refractory Period**: Must be at least `min_rr_sec` since the last peak.</span>
+<span class="sd">        3. **Local Maximum**: Must be greater than or equal to the previous two samples.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            integrated (float): The current integrated value.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if an R-peak is detected, False otherwise.</span>
+<span class="sd">        </span>
+<span class="sd">        Note:</span>
+<span class="sd">            This method updates `_last_peak_sample` upon successful detection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">samples_since_last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_sample</span>
+        <span class="n">refractory_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_rr_sec</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">integrated</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">samples_since_last</span> <span class="o">&lt;</span> <span class="n">refractory_samples</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_integrated</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="n">recent</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer_integrated</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">integrated</span> <span class="o">&gt;=</span> <span class="n">recent</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">recent</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">integrated</span> <span class="o">&gt;=</span> <span class="n">recent</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_last_peak_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_count</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.features.heart_rate module &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="streamsim.src.features.local_maxima module" href="src.features.local_maxima.html" />
+    <link rel="prev" title="streamsim.src.examples.sinus_demo module" href="src.examples.sinus_demo.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="src.core.config.html">streamsim.src.core.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.core.interfaces.html">streamsim.src.core.interfaces module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.core.simulator.html">streamsim.src.core.simulator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.hr_anomaly.html">streamsim.src.detectors.hr_anomaly module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.passthrough.html">streamsim.src.detectors.passthrough module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.simple.html">streamsim.src.detectors.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.ecg_demo.html">streamsim.src.examples.ecg_demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.sinus_demo.html">streamsim.src.examples.sinus_demo module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">streamsim.src.features.heart_rate module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.add_sample"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.add_sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_feature"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.get_feature()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_features"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.get_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_heart_rate"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.get_heart_rate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_rr_interval"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.get_rr_interval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.reset"><code class="docutils literal notranslate"><span class="pre">HRFeatureDeriver.reset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.local_maxima.html">streamsim.src.features.local_maxima module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.simple.html">streamsim.src.features.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.renderers.matplotlib_line.html">streamsim.src.renderers.matplotlib_line module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.renderers.vline.html">streamsim.src.renderers.vline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.ecg.html">streamsim.src.sources.ecg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.sinus.html">streamsim.src.sources.sinus module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">streamsim.src.features.heart_rate module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/src.features.heart_rate.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-streamsim.src.features.heart_rate">
+<span id="streamsim-src-features-heart-rate-module"></span><h1>streamsim.src.features.heart_rate module<a class="headerlink" href="#module-streamsim.src.features.heart_rate" title="Link to this heading"></a></h1>
+<p>R-Peak Detection and Heart Rate Calculation for ECG Signals</p>
+<p>This module provides a streaming feature deriver that detects R-peaks in
+electrocardiogram (ECG) signals and calculates instantaneous heart rate. It
+implements a complete signal processing pipeline inspired by the Pan-Tompkins
+algorithm, adapted for real-time streaming applications.</p>
+<dl class="simple">
+<dt>Signal Processing Pipeline:</dt><dd><p>Raw ECG → Bandpass Filter → Derivative → Squaring → Moving Average → Thresholding → Peak Detection</p>
+</dd>
+<dt>Heart Rate Calculation:</dt><dd><ul class="simple">
+<li><p>Measures RR intervals between consecutive R-peaks</p></li>
+<li><p>Computes instantaneous heart rate: HR = 60 / RR_interval (BPM)</p></li>
+<li><p>Applies moving average smoothing over recent intervals for stability</p></li>
+<li><p>Validates intervals against physiological bounds (30-220 BPM)</p></li>
+</ul>
+</dd>
+<dt>Features:</dt><dd><ul class="simple">
+<li><p>Adaptive thresholding for robust peak detection in varying signal conditions</p></li>
+<li><p>Refractory period enforcement to prevent double-counting peaks</p></li>
+<li><p>Physiological validation of RR intervals</p></li>
+<li><p>Configurable smoothing window for heart rate stability</p></li>
+<li><p>Comprehensive state reset capability for multi-segment analysis</p></li>
+</ul>
+</dd>
+<dt>Important Dependencies:</dt><dd><ul class="simple">
+<li><p>collections.deque: Efficient circular buffers for streaming data</p></li>
+<li><p>streamsim.src.core.interfaces.StreamingFeatureDeriver: Base interface</p></li>
+</ul>
+</dd>
+</dl>
+<p>Author: F.Feenstra with inspiration from Pan-Tompkins algorithm</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">streamsim.src.features.heart_rate</span><span class="w"> </span><span class="kn">import</span> <span class="n">HRFeatureDeriver</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deriver</span> <span class="o">=</span> <span class="n">HRFeatureDeriver</span><span class="p">(</span><span class="n">fs</span><span class="o">=</span><span class="mf">360.0</span><span class="p">,</span> <span class="n">threshold_factor</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">streamsim.src.features.heart_rate.</span></span><span class="sig-name descname"><span class="pre">HRFeatureDeriver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">360.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_rr_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rr_window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_hr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_hr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">220.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">StreamingFeatureDeriver</span></code></p>
+<p>Feature deriver that detects R-peaks in ECG signals and calculates heart rate.</p>
+<dl class="simple">
+<dt>Signal Processing Pipeline:</dt><dd><p>Raw ECG → Bandpass → Derivative → Square → Moving Average → Threshold</p>
+</dd>
+<dt>Heart Rate Calculation:</dt><dd><ul class="simple">
+<li><p>Measures RR intervals between consecutive R-peaks</p></li>
+<li><p>Computes instantaneous heart rate: HR = 60 / RR_interval (BPM)</p></li>
+<li><p>Optionally smooths using a moving average of recent intervals</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.add_sample">
+<span class="sig-name descname"><span class="pre">add_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.add_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.add_sample" title="Link to this definition"></a></dt>
+<dd><p>Process a new ECG sample through the detection pipeline.</p>
+<p>Executes the full signal processing chain: bandpass filtering,
+differentiation, squaring, moving average integration, and adaptive
+thresholding. If an R-peak is detected, updates the heart rate calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample</strong> (<em>float</em>) – The raw ECG signal sample value.</p></li>
+<li><p><strong>timestamp</strong> (<em>float</em><em>, </em><em>optional</em>) – Timestamp of the sample in seconds.
+If None, calculates based on sample count and fs.
+Default: None.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The first ~200ms of data (depending on fs) will not produce valid
+detections as the buffers fill up. The <cite>get_heart_rate()</cite> method
+returns None until sufficient RR intervals are collected.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.get_feature">
+<span class="sig-name descname"><span class="pre">get_feature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.get_feature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_feature" title="Link to this definition"></a></dt>
+<dd><p>Get the latest heart rate</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.get_features">
+<span class="sig-name descname"><span class="pre">get_features</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.get_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_features" title="Link to this definition"></a></dt>
+<dd><p>Get both the peak timestamp and heart rate.</p>
+<p>Convenience method for retrieving all derived features at once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(peak_timestamp, heart_rate)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[Optional[float], Optional[float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.get_heart_rate">
+<span class="sig-name descname"><span class="pre">get_heart_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.get_heart_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_heart_rate" title="Link to this definition"></a></dt>
+<dd><p>Get the current heart rate in beats per minute (BPM).</p>
+<p>The heart rate is calculated as a moving average of the last N RR intervals,
+where N is determined by rr_window_size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Heart rate in BPM, or None if insufficient data.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.get_rr_interval">
+<span class="sig-name descname"><span class="pre">get_rr_interval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.get_rr_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.get_rr_interval" title="Link to this definition"></a></dt>
+<dd><p>Get the time difference between the last two detected R-peaks.
+Useful for analyzing beat-to-beat variability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Last RR interval in seconds, or None if no interval recorded.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.features.heart_rate.HRFeatureDeriver.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/features/heart_rate.html#HRFeatureDeriver.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.features.heart_rate.HRFeatureDeriver.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset all internal state and buffers.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="src.examples.sinus_demo.html" class="btn btn-neutral float-left" title="streamsim.src.examples.sinus_demo module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="src.features.local_maxima.html" class="btn btn-neutral float-right" title="streamsim.src.features.local_maxima module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

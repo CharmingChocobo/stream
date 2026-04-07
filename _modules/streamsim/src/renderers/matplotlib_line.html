@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.renderers.matplotlib_line &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">streamsim.src.renderers.matplotlib_line</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for streamsim.src.renderers.matplotlib_line</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Matplotlib Streaming Renderer with Marker Point Visualization</span>
+
+<span class="sd">This module provides a streaming renderer class for visualizing time-series</span>
+<span class="sd">data with automatic annotation of detected Marker points. It is designed</span>
+<span class="sd">for integration with real-time data pipelines where Marker points need to</span>
+<span class="sd">be highlighted dynamically as new data arrives.</span>
+
+<span class="sd">The renderer maintains a sliding time window, automatically filtering data</span>
+<span class="sd">to display only the most recent samples within the configured duration.</span>
+<span class="sd">Marker points are interpolated to match the signal line&#39;s y-values</span>
+<span class="sd">at the detected timestamps.</span>
+
+<span class="sd">Features:</span>
+<span class="sd">    - Dynamic title updates with feature values</span>
+<span class="sd">    - Configurable styling for signal lines and marker points</span>
+<span class="sd">    - Efficient incremental updates (no full redraws)</span>
+<span class="sd">    - Automatic visibility management for marker points</span>
+<span class="sd">    - Resource cleanup via explicit cleanup() method</span>
+
+<span class="sd">Important Dependencies:</span>
+<span class="sd">    - streamsim.src.core.interfaces.StreamingRenderer: Base interface</span>
+
+<span class="sd">Author: F.Feenstra</span>
+
+<span class="sd">Example:</span>
+<span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">    &gt;&gt;&gt; from streamsim.src.renderers.matplotlib_line import MatplotlibLineRenderer</span>
+<span class="sd">    &gt;&gt;&gt; renderer = MatplotlibLineRenderer(</span>
+<span class="sd">    ...     line_color=&#39;blue&#39;,</span>
+<span class="sd">    ...     marker_style=&#39;ro&#39;,</span>
+<span class="sd">    ...     marker_alpha=0.8,</span>
+<span class="sd">    ...     show_legend=True,</span>
+<span class="sd">    ...     marker_label=&#39;Peak&#39;,</span>
+<span class="sd">    ...     title_template=&quot;Sinus Wave Peaks — Latest Value: {feature:.1f}&quot;</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">    &gt;&gt;&gt; artists = renderer.initialize(ax)</span>
+<span class="sd">    &gt;&gt;&gt; # In streaming loop:</span>
+<span class="sd">    &gt;&gt;&gt; # updated_artists = renderer.update(times, samples, features, change_points, window_duration)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">streamsim.src.core.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">StreamingRenderer</span> 
+
+<div class="viewcode-block" id="MatplotlibLineRenderer">
+<a class="viewcode-back" href="../../../../modules/src.renderers.matplotlib_line.html#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatplotlibLineRenderer</span><span class="p">(</span><span class="n">StreamingRenderer</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Default matplotlib line chart renderer for streaming data visualization.</span>
+<span class="sd">    </span>
+<span class="sd">    This class implements the StreamingRenderer interface to provide real-time</span>
+<span class="sd">    visualization of streaming signals with configurable styling and marker point</span>
+<span class="sd">    annotation. It supports dynamic title updates based on feature values and</span>
+<span class="sd">    flexible legend configuration for both signal and marker elements.</span>
+<span class="sd">    </span>
+<span class="sd">    Designed for use with the streaming framework&#39;s data pipeline, this renderer</span>
+<span class="sd">    efficiently updates plot elements without redrawing the entire figure,</span>
+<span class="sd">    making it suitable for high-frequency data streams.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">line_color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span>
+        <span class="n">line_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">marker_style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span>
+        <span class="n">marker_alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+        <span class="n">signal_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Signal&#39;</span><span class="p">,</span>
+        <span class="n">marker_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Change&#39;</span><span class="p">,</span>
+        <span class="n">show_legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">title_template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Streaming Data — Feature: </span><span class="si">{feature:.4f}</span><span class="s2">&quot;</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_color</span> <span class="o">=</span> <span class="n">line_color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_width</span> <span class="o">=</span> <span class="n">line_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_style</span> <span class="o">=</span> <span class="n">marker_style</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_alpha</span> <span class="o">=</span> <span class="n">marker_alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal_label</span> <span class="o">=</span> <span class="n">signal_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_label</span> <span class="o">=</span> <span class="n">marker_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span> <span class="o">=</span> <span class="n">show_legend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_template</span> <span class="o">=</span> <span class="n">title_template</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
+    
+<div class="viewcode-block" id="MatplotlibLineRenderer.initialize">
+<a class="viewcode-back" href="../../../../modules/src.renderers.matplotlib_line.html#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create initial plot elements on the provided axes.</span>
+<span class="sd">        </span>
+<span class="sd">        Sets up the signal line, markers, and dynamic title on the</span>
+<span class="sd">        given matplotlib axes. This method should be called once before the</span>
+<span class="sd">        streaming loop begins.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ax (Any): The matplotlib Axes instance to draw on. Typically obtained</span>
+<span class="sd">                      from plt.subplots() or fig.add_subplot().</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Any]: List of artist objects [line, marker, title_artist] that</span>
+<span class="sd">                       should be tracked for efficient updates (e.g., blitting).</span>
+<span class="sd">        </span>
+<span class="sd">        Example:</span>
+<span class="sd">        &gt;&gt;&gt; renderer = MatplotlibLineRenderer(</span>
+<span class="sd">        ...     line_color=&#39;blue&#39;,</span>
+<span class="sd">        ...     marker_style=&#39;ro&#39;,</span>
+<span class="sd">        ...     marker_alpha=0.8,</span>
+<span class="sd">        ...     show_legend=True,</span>
+<span class="sd">        ...     marker_label=&#39;Peak&#39;,</span>
+<span class="sd">        ...     title_template=&quot;Sinus Wave Peaks — Latest Value: {feature:.1f}&quot;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; fig, ax = plt.subplots()</span>
+<span class="sd">        &gt;&gt;&gt; artists = renderer.initialize(ax)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([],</span> <span class="p">[],</span> <span class="n">lw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">line_width</span><span class="p">,</span> 
+                             <span class="n">color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">line_color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_label</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([],</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_style</span><span class="p">,</span> 
+                               <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">marker_alpha</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">marker_label</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_legend</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">artists</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">artists</span></div>
+
+    
+<div class="viewcode-block" id="MatplotlibLineRenderer.update">
+<a class="viewcode-back" href="../../../../modules/src.renderers.matplotlib_line.html#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">samples</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">features</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">change_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">window_duration_sec</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update plot elements with new streaming data.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            times (np.ndarray): Array of timestamps.</span>
+<span class="sd">            samples (np.ndarray): Array of signal values.</span>
+<span class="sd">            features (np.ndarray): Array of feature values.</span>
+<span class="sd">            change_points (np.ndarray): Array of change point timestamps.</span>
+<span class="sd">            window_duration_sec (float): Visible time window duration.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Any]: Updated artist objects.</span>
+<span class="sd">        </span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; updated_artists = renderer.update(times, samples, features, change_points, window_duration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">artists</span>
+        
+        <span class="c1"># Update signal line</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">times</span> <span class="o">&gt;=</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">window_duration_sec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">samples</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+        
+        <span class="c1"># Update change point markers</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">change_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">visible_mask</span> <span class="o">=</span> <span class="n">change_points</span> <span class="o">&gt;=</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">window_duration_sec</span>
+            <span class="n">visible_cps</span> <span class="o">=</span> <span class="n">change_points</span><span class="p">[</span><span class="n">visible_mask</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">visible_cps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">y_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">visible_cps</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">set_xdata</span><span class="p">(</span><span class="n">visible_cps</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">set_ydata</span><span class="p">(</span><span class="n">y_values</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="c1"># Update title with latest feature value</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">latest_feature</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">feature</span><span class="o">=</span><span class="n">latest_feature</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">artists</span></div>
+
+    
+<div class="viewcode-block" id="MatplotlibLineRenderer.cleanup">
+<a class="viewcode-back" href="../../../../modules/src.renderers.matplotlib_line.html#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.cleanup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Release resources and clear references.</span>
+<span class="sd">        This method can be called when the simulation is stopped to clean up any resources and prevent memory leaks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_artist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

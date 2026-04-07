@@ -1,0 +1,84 @@
+Running Sphinx v9.1.0
+loading translations [en]... done
+making output directory... done
+building [mo]: targets for 0 po files that are out of date
+writing output... 
+building [html]: targets for 19 source files that are out of date
+updating environment: [new config] 19 added, 0 changed, 0 removed
+reading sources... [  5%] getting_started
+reading sources... [ 11%] index
+reading sources... [ 16%] modules
+reading sources... [ 21%] modules/src.core.config
+reading sources... [ 26%] modules/src.core.interfaces
+reading sources... [ 32%] modules/src.core.simulator
+reading sources... [ 37%] modules/src.detectors.hr_anomaly
+reading sources... [ 42%] modules/src.detectors.passthrough
+reading sources... [ 47%] modules/src.detectors.simple
+reading sources... [ 53%] modules/src.examples.ecg_demo
+reading sources... [ 58%] modules/src.examples.sinus_demo
+reading sources... [ 63%] modules/src.features.heart_rate
+reading sources... [ 68%] modules/src.features.local_maxima
+reading sources... [ 74%] modules/src.features.simple
+reading sources... [ 79%] modules/src.renderers.matplotlib_line
+reading sources... [ 84%] modules/src.renderers.vline
+reading sources... [ 89%] modules/src.sources.ecg
+reading sources... [ 95%] modules/src.sources.sinus
+reading sources... [100%] usage
+
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+copying assets... 
+copying static files... 
+Writing evaluated template result to /Users/lytsding/Education/repo/stream/docs/build/html/_static/basic.css
+Writing evaluated template result to /Users/lytsding/Education/repo/stream/docs/build/html/_static/language_data.js
+Writing evaluated template result to /Users/lytsding/Education/repo/stream/docs/build/html/_static/documentation_options.js
+Writing evaluated template result to /Users/lytsding/Education/repo/stream/docs/build/html/_static/js/versions.js
+copying static files: done
+copying extra files... 
+copying extra files: done
+copying assets: done
+writing output... [  5%] getting_started
+writing output... [ 11%] index
+writing output... [ 16%] modules
+writing output... [ 21%] modules/src.core.config
+writing output... [ 26%] modules/src.core.interfaces
+writing output... [ 32%] modules/src.core.simulator
+writing output... [ 37%] modules/src.detectors.hr_anomaly
+writing output... [ 42%] modules/src.detectors.passthrough
+writing output... [ 47%] modules/src.detectors.simple
+writing output... [ 53%] modules/src.examples.ecg_demo
+writing output... [ 58%] modules/src.examples.sinus_demo
+writing output... [ 63%] modules/src.features.heart_rate
+writing output... [ 68%] modules/src.features.local_maxima
+writing output... [ 74%] modules/src.features.simple
+writing output... [ 79%] modules/src.renderers.matplotlib_line
+writing output... [ 84%] modules/src.renderers.vline
+writing output... [ 89%] modules/src.sources.ecg
+writing output... [ 95%] modules/src.sources.sinus
+writing output... [100%] usage
+
+generating indices... genindex py-modindex done
+highlighting module code... [  7%] streamsim.src.core.config
+highlighting module code... [ 13%] streamsim.src.core.interfaces
+highlighting module code... [ 20%] streamsim.src.core.simulator
+highlighting module code... [ 27%] streamsim.src.detectors.hr_anomaly
+highlighting module code... [ 33%] streamsim.src.detectors.passthrough
+highlighting module code... [ 40%] streamsim.src.detectors.simple
+highlighting module code... [ 47%] streamsim.src.examples.ecg_demo
+highlighting module code... [ 53%] streamsim.src.examples.sinus_demo
+highlighting module code... [ 60%] streamsim.src.features.heart_rate
+highlighting module code... [ 67%] streamsim.src.features.local_maxima
+highlighting module code... [ 73%] streamsim.src.features.simple
+highlighting module code... [ 80%] streamsim.src.renderers.matplotlib_line
+highlighting module code... [ 87%] streamsim.src.renderers.vline
+highlighting module code... [ 93%] streamsim.src.sources.ecg
+highlighting module code... [100%] streamsim.src.sources.sinus
+
+writing additional pages... search done
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded.
+
+The HTML pages are in build/html.

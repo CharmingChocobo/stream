@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.core.interfaces &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">streamsim.src.core.interfaces</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for streamsim.src.core.interfaces</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Abstract base classes for the streaming framework.&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;F.Feenstra&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="StreamingFeatureDeriver">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingFeatureDeriver">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamingFeatureDeriver</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for real-time feature extraction from streaming data.</span>
+<span class="sd">    </span>
+<span class="sd">    This class defines the interface for components that process incoming data</span>
+<span class="sd">    samples sequentially to derive meaningful features (e.g., statistical metrics,</span>
+<span class="sd">    signal characteristics, or event detections). Implementations maintain internal</span>
+<span class="sd">    state to compute features incrementally without needing to store the entire</span>
+<span class="sd">    history of raw data.</span>
+<span class="sd">    </span>
+<span class="sd">    Methods:</span>
+<span class="sd">        add_sample(sample, timestamp): Feed a new data point into the processor.</span>
+<span class="sd">        get_feature(): Retrieve the most recently calculated feature value.</span>
+<span class="sd">        reset(): Clear all internal state and buffers.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="StreamingFeatureDeriver.add_sample">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingFeatureDeriver.add_sample">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a new sample to the processor.</span>
+<span class="sd">        </span>
+<span class="sd">        Processes the incoming data point and updates internal state.</span>
+<span class="sd">        This method is called frequently in the streaming loop.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sample (float): The new data value to process.</span>
+<span class="sd">            timestamp (float, optional): The timestamp associated with the sample.</span>
+<span class="sd">                                         Used for time-based calculations if supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="StreamingFeatureDeriver.get_feature">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingFeatureDeriver.get_feature">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_feature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the latest derived feature value.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns the most recently computed feature based on the samples processed</span>
+<span class="sd">        so far. Returns None if insufficient data exists to compute a feature.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[float]: The calculated feature value, or None if unavailable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="StreamingFeatureDeriver.reset">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingFeatureDeriver.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset internal state.</span>
+<span class="sd">        </span>
+<span class="sd">        Clears all buffers, counters, and accumulated statistics.</span>
+<span class="sd">        Called when starting a new data stream or segment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StreamingChangePointDetector">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingChangePointDetector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamingChangePointDetector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for detecting distribution shifts (change points) in streaming data.</span>
+<span class="sd">    </span>
+<span class="sd">    This class defines the interface for algorithms that monitor a sequence of feature</span>
+<span class="sd">    values and identify moments where the underlying statistical properties of the</span>
+<span class="sd">    data change significantly (e.g., mean shift, variance change, concept drift).</span>
+<span class="sd">    </span>
+<span class="sd"> </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        drift_detected (bool): Property indicating if a change point was recently detected.</span>
+<span class="sd">                               Defaults to False; implementations override this logic.</span>
+<span class="sd">    </span>
+<span class="sd">    Methods:</span>
+<span class="sd">        update(feature_value): Process a new feature and return detection result.</span>
+<span class="sd">        drift_detected: Read-only property for current drift status.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="StreamingChangePointDetector.update">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingChangePointDetector.update">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update detector with new feature value.</span>
+<span class="sd">        </span>
+<span class="sd">        Processes the incoming feature and determines if a change point has occurred.</span>
+<span class="sd">        This method should be called sequentially for every new feature generated</span>
+<span class="sd">        by a `StreamingFeatureDeriver`.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            feature_value (Optional[float]): The latest feature value to analyze.</span>
+<span class="sd">                                             Can be None if the feature is unavailable.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if a change point (drift) is detected at this step, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drift_detected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if drift/change was detected.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns the current status of the detector. This property reflects the</span>
+<span class="sd">        outcome of the most recent `update()` call or the cumulative state</span>
+<span class="sd">        depending on the implementation strategy.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if a change point is currently flagged, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="StreamingRenderer">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingRenderer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamingRenderer</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract base class for real-time visualization of streaming data.</span>
+<span class="sd">    </span>
+<span class="sd">    This class defines the interface for components responsible for rendering</span>
+<span class="sd">    dynamic plots in a streaming environment. It separates the logic of data</span>
+<span class="sd">    preparation from the rendering engine, allowing for efficient updates</span>
+<span class="sd">    without redrawing the entire figure.</span>
+<span class="sd">    </span>
+<span class="sd">    Methods:</span>
+<span class="sd">        initialize(ax): Set up the initial plot structure on the provided axes.</span>
+<span class="sd">        update(...): Refresh plot data for the current time window.</span>
+<span class="sd">        cleanup(): Release resources and clear references.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="StreamingRenderer.initialize">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingRenderer.initialize">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create initial plot elements.</span>
+<span class="sd">        </span>
+<span class="sd">        Sets up the necessary matplotlib artists (lines, scatter plots, etc.)</span>
+<span class="sd">        on the provided axes. This is called once when the visualization starts.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            ax (Any): The matplotlib Axes instance to draw on.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Any]: A list of artist objects (e.g., Line2D, PathCollection)</span>
+<span class="sd">                       that should be tracked for efficient updates (blitting).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="StreamingRenderer.update">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingRenderer.update">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+               <span class="n">features</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">change_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+               <span class="n">window_duration_sec</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update plot elements with new data.</span>
+<span class="sd">        </span>
+<span class="sd">        Refreshes the data for the existing artists to reflect the latest</span>
+<span class="sd">        streaming data within the specified time window.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            times (np.ndarray): Array of timestamps for the samples.</span>
+<span class="sd">            samples (np.ndarray): Array of raw data values.</span>
+<span class="sd">            features (np.ndarray): Array of derived feature values (may contain None).</span>
+<span class="sd">            change_points (np.ndarray): Array of timestamps where changes were detected.</span>
+<span class="sd">            window_duration_sec (float): Duration of the visible time window in seconds.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Any]: Updated list of artist objects that have been modified.</span>
+<span class="sd">                       Used by animation frameworks to determine what to redraw.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    
+<div class="viewcode-block" id="StreamingRenderer.cleanup">
+<a class="viewcode-back" href="../../../../modules/src.core.interfaces.html#streamsim.src.core.interfaces.StreamingRenderer.cleanup">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Release resources if needed.</span>
+<span class="sd">        </span>
+<span class="sd">        Clears references to plot elements and performs any necessary teardown</span>
+<span class="sd">        to prevent memory leaks, especially important in long-running streaming</span>
+<span class="sd">        applications.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.core.simulator module &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="streamsim.src.detectors.hr_anomaly module" href="src.detectors.hr_anomaly.html" />
+    <link rel="prev" title="streamsim.src.core.interfaces module" href="src.core.interfaces.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="src.core.config.html">streamsim.src.core.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.core.interfaces.html">streamsim.src.core.interfaces module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">streamsim.src.core.simulator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#streamsim.src.core.simulator.StreamingSimulator"><code class="docutils literal notranslate"><span class="pre">StreamingSimulator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.core.simulator.StreamingSimulator.start"><code class="docutils literal notranslate"><span class="pre">StreamingSimulator.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.core.simulator.StreamingSimulator.stop"><code class="docutils literal notranslate"><span class="pre">StreamingSimulator.stop()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.hr_anomaly.html">streamsim.src.detectors.hr_anomaly module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.passthrough.html">streamsim.src.detectors.passthrough module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.simple.html">streamsim.src.detectors.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.ecg_demo.html">streamsim.src.examples.ecg_demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.sinus_demo.html">streamsim.src.examples.sinus_demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.heart_rate.html">streamsim.src.features.heart_rate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.local_maxima.html">streamsim.src.features.local_maxima module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.simple.html">streamsim.src.features.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.renderers.matplotlib_line.html">streamsim.src.renderers.matplotlib_line module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.renderers.vline.html">streamsim.src.renderers.vline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.ecg.html">streamsim.src.sources.ecg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.sinus.html">streamsim.src.sources.sinus module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">streamsim.src.core.simulator module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/src.core.simulator.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-streamsim.src.core.simulator">
+<span id="streamsim-src-core-simulator-module"></span><h1>streamsim.src.core.simulator module<a class="headerlink" href="#module-streamsim.src.core.simulator" title="Link to this heading"></a></h1>
+<p>Multi-Threaded Streaming Simulator</p>
+<p>This module provides a general-purpose framework for real-time visualization and
+analysis of streaming time-series data, featuring a producer-consumer architecture
+with pluggable components for feature extraction and change point detection.</p>
+<dl class="simple">
+<dt>Architecture:</dt><dd><p>The simulator employs a dual-thread design: a background worker thread
+continuously pulls data from a source, derives features, and runs change
+point detection, pushing results to a thread-safe queue. The main thread
+consumes queued updates and renders via an animated visualization, ensuring
+UI responsiveness independent of processing load.</p>
+</dd>
+<dt>Use Cases:</dt><dd><ul class="simple">
+<li><p>Real-time sensor monitoring with live anomaly visualization</p></li>
+<li><p>Educational demonstrations of signal processing pipelines</p></li>
+</ul>
+</dd>
+<dt>Important Dependencies:</dt><dd><ul class="simple">
+<li><p>threading: Background processing thread</p></li>
+<li><p>queue.Queue: Thread-safe communication between producer and consumer</p></li>
+<li><p>collections.deque: Efficient circular buffers for history management</p></li>
+<li><p>matplotlib.animation.FuncAnimation: Animated rendering engine</p></li>
+<li><p>streamsim.src.core.interfaces: Pluggable component interfaces</p></li>
+<li><p>streamsim.src.core.config.PlottingSetup: Visualization configuration</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">StreamingSimulator</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">plotting_setup</span><span class="o">=</span><span class="n">setup</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">feature_deriver</span><span class="o">=</span><span class="n">deriver</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">change_point_detector</span><span class="o">=</span><span class="n">detector</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">renderer</span><span class="o">=</span><span class="n">renderer</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">data_source</span><span class="o">=</span><span class="n">sinus_source</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">window_duration_sec</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">max_history</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">interval_ms</span><span class="o">=</span><span class="mi">100</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="go"># [Matplotlib window opens with live streaming visualization]</span>
+</pre></div>
+</div>
+<p>Author: F.Feenstra</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="streamsim.src.core.simulator.StreamingSimulator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">streamsim.src.core.simulator.</span></span><span class="sig-name descname"><span class="pre">StreamingSimulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plotting_setup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PlottingSetup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_deriver</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StreamingFeatureDeriver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_point_detector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StreamingChangePointDetector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StreamingRenderer</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_duration_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_ms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_history</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/streamsim/src/core/simulator.html#StreamingSimulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.core.simulator.StreamingSimulator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>General framework for streaming time-series visualization.</p>
+<p>Provides multi-threaded architecture with pluggable components for
+feature extraction and change point detection.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.core.simulator.StreamingSimulator.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/core/simulator.html#StreamingSimulator.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.core.simulator.StreamingSimulator.start" title="Link to this definition"></a></dt>
+<dd><p>Launches the streaming simulation and enters the main event loop.</p>
+<p>This method initializes and starts both the background processing thread
+and the matplotlib animation engine, coordinating the full simulation
+pipeline from data ingestion to real-time visualization.</p>
+<dl class="simple">
+<dt>Initialization Steps:</dt><dd><ol class="arabic simple">
+<li><p>Sets the <cite>is_running</cite> flag to True, enabling the worker thread.</p></li>
+<li><p>Spawns a daemon thread executing <cite>_processing_loop</cite> for continuous
+data acquisition, feature derivation, and change point detection.</p></li>
+<li><p>Configures the <cite>FuncAnimation</cite> engine with the plotting setup,
+binding <cite>_update_plot</cite> as the frame callback and <cite>_init_plot</cite>
+for initial render state.</p></li>
+<li><p>Enters the matplotlib main loop via <cite>plt.show()</cite>, blocking until
+the window is closed or <cite>stop()</cite> is called.</p></li>
+</ol>
+</dd>
+<dt>Threading Model:</dt><dd><ul class="simple">
+<li><p>Worker thread: Handles all data processing and queue production</p></li>
+<li><p>Main thread: Manages GUI rendering and queue consumption</p></li>
+<li><p>Both threads communicate via a thread-safe <cite>Queue</cite> instance</p></li>
+</ul>
+</dd>
+<dt>Lifecycle:</dt><dd><p>The simulation runs indefinitely until:
+- The user closes the plot window
+- <cite>stop()</cite> is called programmatically
+- The data source signals completion (returns None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.core.simulator.StreamingSimulator.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/core/simulator.html#StreamingSimulator.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.core.simulator.StreamingSimulator.stop" title="Link to this definition"></a></dt>
+<dd><p>Terminates the streaming simulation and releases resources.</p>
+<p>This method initiates a clean shutdown sequence for both the background
+processing thread and the matplotlib animation engine, ensuring all
+resources are properly released and no orphaned threads remain.</p>
+<dl class="simple">
+<dt>Shutdown Sequence:</dt><dd><ol class="arabic simple">
+<li><p>Sets <cite>is_running</cite> to False, signaling the worker thread to exit
+its processing loop on the next iteration.</p></li>
+<li><p>Waits for the processing thread to join with a 1-second timeout,
+allowing it to finish any in-flight operations.</p></li>
+<li><p>Stops the <cite>FuncAnimation</cite> event source to halt frame callbacks.</p></li>
+<li><p>Invokes the renderer’s cleanup routine to release any allocated
+graphics resources or figure handles.</p></li>
+</ol>
+</dd>
+<dt>Thread Safety:</dt><dd><p>This method is thread-safe and can be called from any thread. It
+uses the shared <cite>is_running</cite> flag to coordinate shutdown with the
+background worker, avoiding race conditions or deadlocks.</p>
+</dd>
+<dt>Post-Execution State:</dt><dd><p>After <cite>stop()</cite> completes:
+- The processing thread is terminated (or timed out)
+- The animation engine is halted
+- Internal buffers retain their last state (call <cite>reset()</cite> if needed)
+- The plot window remains open until manually closed</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Always call <cite>stop()</cite> before closing the application to prevent
+resource leaks or hanging threads. For a fresh start, call <cite>reset()</cite>
+on components before invoking <cite>start()</cite> again.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="src.core.interfaces.html" class="btn btn-neutral float-left" title="streamsim.src.core.interfaces module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="src.detectors.hr_anomaly.html" class="btn btn-neutral float-right" title="streamsim.src.detectors.hr_anomaly module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
