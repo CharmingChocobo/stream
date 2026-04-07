@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.renderers.matplotlib_line module &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="streamsim.src.renderers.vline module" href="src.renderers.vline.html" />
+    <link rel="prev" title="streamsim.src.features.simple module" href="src.features.simple.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="src.core.config.html">streamsim.src.core.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.core.interfaces.html">streamsim.src.core.interfaces module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.core.simulator.html">streamsim.src.core.simulator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.hr_anomaly.html">streamsim.src.detectors.hr_anomaly module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.passthrough.html">streamsim.src.detectors.passthrough module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.detectors.simple.html">streamsim.src.detectors.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.ecg_demo.html">streamsim.src.examples.ecg_demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.examples.sinus_demo.html">streamsim.src.examples.sinus_demo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.heart_rate.html">streamsim.src.features.heart_rate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.local_maxima.html">streamsim.src.features.local_maxima module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.features.simple.html">streamsim.src.features.simple module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">streamsim.src.renderers.matplotlib_line module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer"><code class="docutils literal notranslate"><span class="pre">MatplotlibLineRenderer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.cleanup"><code class="docutils literal notranslate"><span class="pre">MatplotlibLineRenderer.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.initialize"><code class="docutils literal notranslate"><span class="pre">MatplotlibLineRenderer.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.update"><code class="docutils literal notranslate"><span class="pre">MatplotlibLineRenderer.update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="src.renderers.vline.html">streamsim.src.renderers.vline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.ecg.html">streamsim.src.sources.ecg module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="src.sources.sinus.html">streamsim.src.sources.sinus module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">streamsim.src.renderers.matplotlib_line module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/src.renderers.matplotlib_line.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-streamsim.src.renderers.matplotlib_line">
+<span id="streamsim-src-renderers-matplotlib-line-module"></span><h1>streamsim.src.renderers.matplotlib_line module<a class="headerlink" href="#module-streamsim.src.renderers.matplotlib_line" title="Link to this heading"></a></h1>
+<p>Matplotlib Streaming Renderer with Marker Point Visualization</p>
+<p>This module provides a streaming renderer class for visualizing time-series
+data with automatic annotation of detected Marker points. It is designed
+for integration with real-time data pipelines where Marker points need to
+be highlighted dynamically as new data arrives.</p>
+<p>The renderer maintains a sliding time window, automatically filtering data
+to display only the most recent samples within the configured duration.
+Marker points are interpolated to match the signal line’s y-values
+at the detected timestamps.</p>
+<dl class="simple">
+<dt>Features:</dt><dd><ul class="simple">
+<li><p>Dynamic title updates with feature values</p></li>
+<li><p>Configurable styling for signal lines and marker points</p></li>
+<li><p>Efficient incremental updates (no full redraws)</p></li>
+<li><p>Automatic visibility management for marker points</p></li>
+<li><p>Resource cleanup via explicit cleanup() method</p></li>
+</ul>
+</dd>
+<dt>Important Dependencies:</dt><dd><ul class="simple">
+<li><p>streamsim.src.core.interfaces.StreamingRenderer: Base interface</p></li>
+</ul>
+</dd>
+</dl>
+<p>Author: F.Feenstra</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">streamsim.src.renderers.matplotlib_line</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatplotlibLineRenderer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">renderer</span> <span class="o">=</span> <span class="n">MatplotlibLineRenderer</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">line_color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">marker_style</span><span class="o">=</span><span class="s1">&#39;ro&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">marker_alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">marker_label</span><span class="o">=</span><span class="s1">&#39;Peak&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">title_template</span><span class="o">=</span><span class="s2">&quot;Sinus Wave Peaks — Latest Value: </span><span class="si">{feature:.1f}</span><span class="s2">&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">artists</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># In streaming loop:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># updated_artists = renderer.update(times, samples, features, change_points, window_duration)</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">streamsim.src.renderers.matplotlib_line.</span></span><span class="sig-name descname"><span class="pre">MatplotlibLineRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'blue'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ro'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Signal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Change'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Streaming</span> <span class="pre">Data</span> <span class="pre">—</span> <span class="pre">Feature:</span> <span class="pre">{feature:.4f}'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/streamsim/src/renderers/matplotlib_line.html#MatplotlibLineRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">StreamingRenderer</span></code></p>
+<p>Default matplotlib line chart renderer for streaming data visualization.</p>
+<p>This class implements the StreamingRenderer interface to provide real-time
+visualization of streaming signals with configurable styling and marker point
+annotation. It supports dynamic title updates based on feature values and
+flexible legend configuration for both signal and marker elements.</p>
+<p>Designed for use with the streaming framework’s data pipeline, this renderer
+efficiently updates plot elements without redrawing the entire figure,
+making it suitable for high-frequency data streams.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.cleanup">
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/streamsim/src/renderers/matplotlib_line.html#MatplotlibLineRenderer.cleanup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.cleanup" title="Link to this definition"></a></dt>
+<dd><p>Release resources and clear references.
+This method can be called when the simulation is stopped to clean up any resources and prevent memory leaks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/streamsim/src/renderers/matplotlib_line.html#MatplotlibLineRenderer.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.initialize" title="Link to this definition"></a></dt>
+<dd><p>Create initial plot elements on the provided axes.</p>
+<p>Sets up the signal line, markers, and dynamic title on the
+given matplotlib axes. This method should be called once before the
+streaming loop begins.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ax</strong> (<em>Any</em>) – The matplotlib Axes instance to draw on. Typically obtained
+from plt.subplots() or fig.add_subplot().</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>List of artist objects [line, marker, title_artist] that</dt><dd><p>should be tracked for efficient updates (e.g., blitting).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Any]</p>
+</dd>
+</dl>
+<p>Example:
+&gt;&gt;&gt; renderer = MatplotlibLineRenderer(
+…     line_color=’blue’,
+…     marker_style=’ro’,
+…     marker_alpha=0.8,
+…     show_legend=True,
+…     marker_label=’Peak’,
+…     title_template=”Sinus Wave Peaks — Latest Value: {feature:.1f}”
+… )
+&gt;&gt;&gt; fig, ax = plt.subplots()
+&gt;&gt;&gt; artists = renderer.initialize(ax)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_duration_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/streamsim/src/renderers/matplotlib_line.html#MatplotlibLineRenderer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#streamsim.src.renderers.matplotlib_line.MatplotlibLineRenderer.update" title="Link to this definition"></a></dt>
+<dd><p>Update plot elements with new streaming data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>times</strong> (<em>np.ndarray</em>) – Array of timestamps.</p></li>
+<li><p><strong>samples</strong> (<em>np.ndarray</em>) – Array of signal values.</p></li>
+<li><p><strong>features</strong> (<em>np.ndarray</em>) – Array of feature values.</p></li>
+<li><p><strong>change_points</strong> (<em>np.ndarray</em>) – Array of change point timestamps.</p></li>
+<li><p><strong>window_duration_sec</strong> (<em>float</em>) – Visible time window duration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Updated artist objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Any]</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">updated_artists</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">change_points</span><span class="p">,</span> <span class="n">window_duration</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="src.features.simple.html" class="btn btn-neutral float-left" title="streamsim.src.features.simple module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="src.renderers.vline.html" class="btn btn-neutral float-right" title="streamsim.src.renderers.vline module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

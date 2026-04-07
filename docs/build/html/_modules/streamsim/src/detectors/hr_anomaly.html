@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>streamsim.src.detectors.hr_anomaly &mdash; streamsim 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            streamsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">streamsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">streamsim.src.detectors.hr_anomaly</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for streamsim.src.detectors.hr_anomaly</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Robust Heart Rate Anomaly Detector</span>
+
+<span class="sd">This module provides a streaming change point detector specifically designed for</span>
+<span class="sd">identifying persistent heart rate deviations from a fixed baseline established</span>
+<span class="sd">during an initial warmup period.</span>
+
+<span class="sd">Detection Method:</span>
+<span class="sd">    The detector collects heart rate samples during a configurable warmup phase</span>
+<span class="sd">    to establish a baseline mean and standard deviation. Subsequent samples are</span>
+<span class="sd">    compared against this baseline using z-scores. A change point is confirmed</span>
+<span class="sd">    only after a configurable streak of consecutive outliers, reducing false</span>
+<span class="sd">    positives from transient noise.</span>
+
+
+<span class="sd">Important Dependencies:</span>
+<span class="sd">    - collections.deque: Efficient circular buffer for warmup data</span>
+<span class="sd">    - streamsim.src.core.interfaces.StreamingChangePointDetector: Base interface</span>
+
+<span class="sd">Author: F.Feenstra</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">streamsim.src.core.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">StreamingChangePointDetector</span>
+
+
+<div class="viewcode-block" id="HeartRateAnomalyDetector">
+<a class="viewcode-back" href="../../../../modules/src.detectors.hr_anomaly.html#streamsim.src.detectors.hr_anomaly.HeartRateAnomalyDetector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HeartRateAnomalyDetector</span><span class="p">(</span><span class="n">StreamingChangePointDetector</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detects heart rate deviations against a FIXED baseline established during warmup.</span>
+<span class="sd">    </span>
+<span class="sd">    Unlike rolling window detectors, this maintains the original baseline and only</span>
+<span class="sd">    updates it slowly (or not at all), making it sensitive to sudden changes that</span>
+<span class="sd">    persist over time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">threshold_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>      <span class="c1"># How many std devs from baseline</span>
+        <span class="n">warmup_beats</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span>          <span class="c1"># Beats to establish baseline</span>
+        <span class="n">confirmation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>     <span class="c1"># Consecutive outliers to confirm</span>
+        <span class="n">recovery_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>         <span class="c1"># Consecutive normal values to clear alert</span>
+        <span class="n">baseline_adaptation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># How fast baseline adapts (0 = fixed, 0.1 = slow)</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_std</span> <span class="o">=</span> <span class="n">threshold_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup_beats</span> <span class="o">=</span> <span class="n">warmup_beats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confirmation_count</span> <span class="o">=</span> <span class="n">confirmation_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recovery_count</span> <span class="o">=</span> <span class="n">recovery_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseline_adaptation</span> <span class="o">=</span> <span class="n">baseline_adaptation</span>
+        
+        <span class="c1"># Warmup buffer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warmup_buffer</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">warmup_beats</span><span class="p">)</span>
+        
+        <span class="c1"># Fixed baseline (established after warmup)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_std</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># State tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outlier_streak</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_normal_streak</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="HeartRateAnomalyDetector.update">
+<a class="viewcode-back" href="../../../../modules/src.detectors.hr_anomaly.html#streamsim.src.detectors.hr_anomaly.HeartRateAnomalyDetector.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update detector with new heart rate value.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            feature_value (float): Current heart rate in BPM.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if a significant deviation is confirmed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">feature_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Phase 1: Warmup - collect baseline data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warmup_beats</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warmup_buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="c1"># Phase 2: Establish baseline after warmup completes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_warmup_buffer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_std</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="mf">5.0</span><span class="p">)</span>  <span class="c1"># Floor at 5 BPM std</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Detector] Baseline established: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_baseline_std</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> BPM&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="c1"># Phase 3: Compare against fixed baseline</span>
+        <span class="n">deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">feature_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span><span class="p">)</span>
+        <span class="n">z_score</span> <span class="o">=</span> <span class="n">deviation</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_std</span>
+        
+        <span class="n">is_outlier</span> <span class="o">=</span> <span class="n">z_score</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_std</span>
+        
+        <span class="k">if</span> <span class="n">is_outlier</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outlier_streak</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_normal_streak</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="c1"># Confirm anomaly after consecutive outliers</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outlier_streak</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation_count</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Detector] ANOMALY DETECTED at beat </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span><span class="si">}</span><span class="s2">: HR=</span><span class="si">{</span><span class="n">feature_value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">, baseline=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_normal_streak</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+            <span class="c1"># Clear alert after sustained return to normal</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normal_streak</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recovery_count</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Detector] Anomaly CLEARED at beat </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outlier_streak</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Optional: Slowly adapt baseline (for long-term drift accommodation)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline_adaptation</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline_adaptation</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="o">+</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">baseline_adaptation</span> <span class="o">*</span> <span class="n">feature_value</span>
+            <span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drift_detected</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a change point was recently detected.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span>
+
+<div class="viewcode-block" id="HeartRateAnomalyDetector.reset">
+<a class="viewcode-back" href="../../../../modules/src.detectors.hr_anomaly.html#streamsim.src.detectors.hr_anomaly.HeartRateAnomalyDetector.reset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset internal state.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warmup_buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_mean</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseline_std</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_beat_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outlier_streak</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_normal_streak</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drift_detected</span> <span class="o">=</span> <span class="kc">False</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Fenna Feenstra.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
