@@ -53,6 +53,8 @@ from collections import deque
 from streamsim.src.core.interfaces import StreamingFeatureDeriver, StreamingChangePointDetector, StreamingRenderer
 from streamsim.src.core.config import PlottingSetup
 
+import logging
+logger = logging.getLogger(__name__) 
 
 class StreamingSimulator:
     """
@@ -141,13 +143,13 @@ class StreamingSimulator:
             
             is_change = self.change_point_detector.update(feature)
             
-            print(f"[Simulator] Feature={feature}, is_change={is_change}")
+            logger.debug(f"[Simulator] Feature={feature}, is_change={is_change}")
             
             if is_change:
                 if not hasattr(self, '_anomaly_line_added') or not self._anomaly_line_added:
                     self.change_timestamps.append(timestamp)
                     self._anomaly_line_added = True
-                    print(f"[Simulator] ADDED change point: t={timestamp:.2f}s")
+                    logger.debug(f"[Simulator] ADDED change point: t={timestamp:.2f}s")
             else:
                 self._anomaly_line_added = False
 
@@ -307,7 +309,7 @@ class StreamingSimulator:
 
     def _on_close(self, event) -> None:
         """Handle figure close event."""
-        print("[Simulator] Window closed, stopping...")
+        logger.debug("[Simulator] Window closed, stopping...")
         self.stop()
 
 
@@ -345,7 +347,7 @@ class StreamingSimulator:
             resource leaks or hanging threads. For a fresh start, call `reset()`
             on components before invoking `start()` again.
         """
-        print('simulation is stopped')
+        logger.debug("Simulation is stopped")
         self.is_running = False
 
         if self.processing_thread:

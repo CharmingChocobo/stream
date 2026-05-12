@@ -2,6 +2,23 @@
 
 __author__ = "F.Feenstra"
 
+
+#login set up
+import logging
+from streamsim.src.core.config import LoggingSetup
+from streamsim.src.core.config import LOG_DIR
+from datetime import datetime
+
+# This MUST be the very first thing you do before importing other modules
+logging_setup = LoggingSetup(
+    level=logging.DEBUG,
+    log_file=f"{LOG_DIR}/sinus_demo{datetime.now().strftime('%Y%m%d_%H%M%S')}.log",
+    timestamp_filename=True             # Set to True if you want unique filenames per run
+)
+logging_setup.setup_logging()
+logger = logging.getLogger(__name__)
+
+
 from streamsim.src.core.simulator import StreamingSimulator
 from streamsim.src.core.config import PlottingSetup
 from streamsim.src.features.local_maxima import LocalMaximaDeriver
@@ -40,7 +57,7 @@ def run_sinus_example():
         Running Sinus Wave Peak Detection...
         # [Matplotlib window opens with live sine wave and orange peak markers]
     """
-    print("Running Sinus Wave Peak Detection...")
+    logger.info("Running Sinus Wave Peak Detection...")
     
     # 1. Setup Visualization
     fig, ax = plt.subplots(figsize=(12, 5))

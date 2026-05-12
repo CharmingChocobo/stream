@@ -23,7 +23,9 @@ Author: F.Feenstra
 from collections import deque
 import numpy as np
 from streamsim.src.core.interfaces import StreamingChangePointDetector
+from streamsim.src.core.logger import get_logger  # Import logger
 
+logger = get_logger(__name__)
 
 class HeartRateAnomalyDetector(StreamingChangePointDetector):
     """
@@ -61,6 +63,13 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
         self._normal_streak = 0
         self._drift_detected = False
 
+        # Log initialization at DEBUG level
+        logger.debug(
+            f"HeartRateAnomalyDetector initialized: "
+            f"threshold_std={threshold_std}, warmup_beats={warmup_beats}, "
+            f"confirmation_count={confirmation_count}"
+        )
+
     def update(self, feature_value: float) -> bool:
         """
         Update detector with new heart rate value.
@@ -86,7 +95,9 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
             arr = np.array(self._warmup_buffer)
             self._baseline_mean = arr.mean()
             self._baseline_std = max(arr.std(), 5.0)  # Floor at 5 BPM std
-            print(f"[Detector] Baseline established: {self._baseline_mean:.1f} ± {self._baseline_std:.1f} BPM")
+            logger.info(
+                f"Baseline established: {self._baseline_mean:.1f} ± {self._baseline_std:.1f} BPM"
+            )
             return False
         
         # Phase 3: Compare against fixed baseline
@@ -102,7 +113,10 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
             # Confirm anomaly after consecutive outliers
             if self._outlier_streak >= self.confirmation_count:
                 if not self._drift_detected:
-                    print(f"[Detector] ANOMALY DETECTED at beat {self._beat_count}: HR={feature_value:.1f}, baseline={self._baseline_mean:.1f}")
+                    logger.warning(
+                        f"ANOMALY DETECTED at beat {self._beat_count}: "
+                        f"HR={feature_value:.1f}, baseline={self._baseline_mean:.1f}"
+                    )
                 self._drift_detected = True
                 return True
         else:
@@ -111,7 +125,7 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
             # Clear alert after sustained return to normal
             if self._normal_streak >= self.recovery_count:
                 if self._drift_detected:
-                    print(f"[Detector] Anomaly CLEARED at beat {self._beat_count}")
+                    logger.info(f"Anomaly CLEARED at beat {self._beat_count}")
                 self._drift_detected = False
                 self._outlier_streak = 0
         
@@ -131,6 +145,7 @@ class HeartRateAnomalyDetector(StreamingChangePointDetector):
 
     def reset(self) -> None:
         """Reset internal state."""
+        logger.debug("Detector state reset")
         self._warmup_buffer.clear()
         self._baseline_mean = None
         self._baseline_std = None

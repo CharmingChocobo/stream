@@ -2,6 +2,22 @@
 
 __author__ = "F.Feenstra"
 
+#login set up
+import logging
+from streamsim.src.core.config import LoggingSetup
+from streamsim.src.core.config import LOG_DIR
+from datetime import datetime
+
+# This MUST be the very first thing you do before importing other modules
+logging_setup = LoggingSetup(
+    level=logging.DEBUG,
+    log_file=f"{LOG_DIR}/ecg_demo{datetime.now().strftime('%Y%m%d_%H%M%S')}.log",
+    timestamp_filename=True             # Set to True if you want unique filenames per run
+)
+logging_setup.setup_logging()
+logger = logging.getLogger(__name__)
+
+
 from streamsim.src.core.simulator import StreamingSimulator
 from streamsim.src.core.config import PlottingSetup
 from streamsim.src.features.heart_rate import HRFeatureDeriver
@@ -30,7 +46,7 @@ def run_rpeak_example():
         Running R-Peak Detection...
         # [Matplotlib window opens with live ECG data]
     """
-    print("Running R-Peak Detection...")
+    logger.info("Starting R-Peak Detection demo")
     
     # 1. Setup Visualization
     fig, ax = plt.subplots(figsize=(12, 5))
