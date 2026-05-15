@@ -156,7 +156,9 @@ class PlottingSetup:
                                            If None, axes auto-scale. Defaults to None.
         title (str): Plot title displayed above the axes. 
                      Defaults to "Streaming Data Visualization".
-    
+        xlabel (str): Label for the x-axis. Defaults to "Time (s)".
+        ylabel (str): Label for the y-axis. Defaults to "Value (units unknown)".
+
     Methods:
         configure(): Applies the configured title and axis limits to the axes
                      instance. Should be called once during initialization.
@@ -191,6 +193,8 @@ class PlottingSetup:
         artists: Dict[str, Any] = None,
         xlim: Tuple[float, float] = None,
         ylim: Tuple[float, float] = None,
+        xlabel: str = "Time (s)",
+        ylabel: str = "Value (units unknown)",
         title: str = "Streaming Data Visualization"
     ):
         """
@@ -202,6 +206,8 @@ class PlottingSetup:
             artists: Dictionary of named artists. Defaults to empty dict.
             xlim: Optional x-axis bounds (min, max).
             ylim: Optional y-axis bounds (min, max).
+            xlabel: Label for the x-axis.
+            ylabel: Label for the y-axis.
             title: Plot title text.
         """
         self.fig = fig
@@ -211,6 +217,8 @@ class PlottingSetup:
         self.xlim = xlim
         self.ylim = ylim
         self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
     
     def configure(self) -> None:
         """
@@ -228,6 +236,8 @@ class PlottingSetup:
             >>> setup.configure()  # Title now visible on axes
         """
         self.ax.set_title(self.title)
+        self.ax.set_xlabel(self.xlabel)
+        self.ax.set_ylabel(self.ylabel)
         if self.xlim:
             self.ax.set_xlim(self.xlim)
         if self.ylim:
@@ -247,6 +257,8 @@ class PlottingSetup:
             f"artists={self.artists!r}, "
             f"xlim={self.xlim!r}, "
             f"ylim={self.ylim!r}, "
+            f"xlabel={self.xlabel!r}, "
+            f"ylabel={self.ylabel!r}, "
             f"title={self.title!r}"
             f")"
         )
