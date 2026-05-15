@@ -1,4 +1,4 @@
-""" ECG R-Peak Detection Demonstration Script."""
+"""Sensor Anomaly Detection Demonstration Script."""
 
 __author__ = "F.Feenstra, J. Beenen"
 
@@ -24,7 +24,7 @@ from streamsim.src.features.heart_rate import HRFeatureDeriver
 from streamsim.src.detectors.hr_anomaly import HeartRateAnomalyDetector
 from streamsim.src.renderers.vline import VerticalLineRenderer
 
-from streamsim.src.sources.sensor import create_ecg_data_source #, create_ecg_with_temporary_anomaly
+from streamsim.src.sources.sensor import create_signal_data_source #, create_ecg_with_temporary_anomaly
 from matplotlib import pyplot as plt
 
 import pandas as pd
@@ -32,39 +32,38 @@ import pandas as pd
 
 
 
-def run_rpeak_example():
+def run_anomaly_detection_example():
     """
-    Executes the R-Peak Detection demonstration pipeline.
+    Executes the Anomaly Detection demonstration pipeline.
 
     This function initializes all components required for the simulation,
     configures the visualization parameters, and starts the streaming loop.
     It blocks execution until the user closes the Matplotlib window.
 
     Components Initialized:
-        - Data Source: Synthetic ECG signal generator.
+        - Data Source: Signal generator.
         - Feature Deriver: RPeakFeatureDeriver for heartbeat detection.
         - Detector: PeakPassThrough (specialized logic).
         - Renderer: RPeakRenderer (blue signal, green peaks).
 
     Example:
-        >>> run_rpeak_example()
-        Running R-Peak Detection...
-        # [Matplotlib window opens with live ECG data]
+        >>> run_anomaly_detection_example()
+        Running Anomaly Detection...
+        # [Matplotlib window opens with live signal data]
     """
-    logger.info("Starting R-Peak Detection demo")
+    logger.info("Starting Anomaly Detection demo")
     
     # 1. Setup Visualization
     fig, ax = plt.subplots(figsize=(12, 5))
     setup = PlottingSetup(
         fig=fig,
         ax=ax,
-        title="ECG R-Peak Detection (Specialized Detector)",
-        ylim=(-2, 2)
+        title="Signal - Anomaly Detection (Specialized Detector)",
+        ylim=(-1, 15) #TODO: make this dynamic based on the data in window
     )
 
     # 2. Initialize Data Source
-    data_source = create_ecg_data_source()
-    # data_source = create_ecg_with_temporary_anomaly(start=20.0, stop=25.0)
+    data_source = create_signal_data_source()
     
     # 3. Configure Feature Deriver (R-Peak Detection)
     # Sampling frequency set to 360Hz, typical for medical ECG devices.
@@ -108,4 +107,4 @@ def run_rpeak_example():
     sim.start()
 
 if __name__ == "__main__":
-    run_rpeak_example()
+    run_anomaly_detection_example()
