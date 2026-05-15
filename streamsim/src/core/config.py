@@ -8,8 +8,21 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime
+import yaml
 
-LOG_DIR = Path.home() / ".streamsim" / "logs"
+# Load configuration from YAML file
+with open("./config.yaml", "r", encoding="utf-8") as stream:
+    config = yaml.safe_load(stream)
+
+# Set up log directory based on config, with fallback to default
+try:
+    if len(config["log_dir"]) > 0:
+        LOG_DIR = Path(config["log_dir"])
+        print(f"Log directory set to: ./{LOG_DIR}")
+    else:
+        LOG_DIR = Path.home() / ".streamsim" / "logs"
+except KeyError:
+    LOG_DIR = Path.home() / ".streamsim" / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
