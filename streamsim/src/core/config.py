@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 import yaml
 
+<<<<<<< feature/use-csv-input
 # Load configuration from YAML file
 with open("./config.yaml", "r", encoding="utf-8") as stream:
     config = yaml.safe_load(stream)
@@ -23,7 +24,12 @@ try:
         LOG_DIR = Path.home() / ".streamsim" / "logs"
 except KeyError:
     LOG_DIR = Path.home() / ".streamsim" / "logs"
+=======
+
+LOG_DIR = Path.home() / ".streamsim" / "logs"
+>>>>>>> main
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 
 
 class LoggingSetup:
@@ -49,7 +55,7 @@ class LoggingSetup:
     def __init__(
         self,
         level: int = logging.INFO,
-        log_file: str = f"streamsim_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log",
+        log_file: str = str(LOG_DIR / f"streamsim_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
         console: bool = False,
         log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt: str = '%Y-%m-%d %H:%M:%S',
@@ -66,71 +72,57 @@ class LoggingSetup:
     def setup_logging(self) -> None:
         """
         Configure the root logger based on the instance attributes.
-        
-        This method sets up file and optional console handlers with the specified
-        logging level and format. It also silences noisy third-party libraries
-        like Matplotlib.
-        
-        Call this ONCE at the very beginning of your application (e.g., in __main__).
         """
-        # 1. Get the root logger
         root_logger = logging.getLogger()
         root_logger.setLevel(self.level)
         
-        # 2. Clear existing handlers to prevent duplicates if called multiple times
         if root_logger.handlers:
             root_logger.handlers.clear()
 
-        # 3. Create Formatter
         formatter = logging.Formatter(self.log_format, datefmt=self.datefmt)
 
-        # 4. Create File Handler (if log_file is provided)
         if self.log_file:
+            log_path_obj = Path(self.log_file)
+            target_dir = log_path_obj.parent
+            
             final_log_path = self.log_file
             
-            # Add timestamp to filename if requested
             if self.timestamp_filename:
-                name, ext = Path(self.log_file).stem, Path(self.log_file).suffix
+                name = log_path_obj.stem
+                ext = log_path_obj.suffix
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                final_log_path = f"{name}_{timestamp}{ext}"
+                new_filename = f"{name}_{timestamp}{ext}"
+                final_log_path = target_dir / new_filename
             
             try:
-                file_handler = logging.FileHandler(final_log_path, mode='a')
+                Path(final_log_path).parent.mkdir(parents=True, exist_ok=True)   
+                file_handler = logging.FileHandler(str(final_log_path), mode='a')
                 file_handler.setLevel(self.level)
                 file_handler.setFormatter(formatter)
                 root_logger.addHandler(file_handler)
             except Exception as e:
-                # Fallback to stderr if file creation fails
                 print(f"Warning: Could not create log file '{final_log_path}': {e}", file=sys.stderr)
 
-        # 5. Create Console Handler (if requested)
         if self.console:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setLevel(self.level)
             console_handler.setFormatter(formatter)
             root_logger.addHandler(console_handler)
 
-        # 6. Silence Noisy Third-Party Libraries
-        # These libraries often spam DEBUG logs about fonts and image loading
         noisy_libraries = [
-            'matplotlib',
-            'matplotlib.font_manager',
-            'PIL',
-            'PIL.PngImagePlugin',
-            'PIL.Image',
-            'numpy'
+            'matplotlib', 'matplotlib.font_manager', 'PIL', 'PIL.PngImagePlugin', 
+            'PIL.Image', 'numpy'
         ]
         
         for lib_name in noisy_libraries:
             logging.getLogger(lib_name).setLevel(logging.WARNING)
 
-        # Optional: Log that setup is complete (this will go to the file/console)
-        # We use a temporary logger to avoid recursion issues during setup
         temp_logger = logging.getLogger(__name__)
         temp_logger.info(f"Logging initialized: Level={logging.getLevelName(self.level)}, "
-                         f"File={final_log_path if self.log_file else 'None'}, "
-                         f"Console={self.console}")
-
+                        f"File={final_log_path if self.log_file else 'None'}, "
+                        f"Console={self.console}")
+    
+    
 
 class PlottingSetup:
     """
