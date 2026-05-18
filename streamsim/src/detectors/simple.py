@@ -30,7 +30,11 @@ class SimpleDetector(StreamingChangePointDetector):
     by more than a specified number of standard deviations.
     """
     
-    def __init__(self, threshold: float = 2.0):
+    def __init__(
+            self, 
+            threshold: float = 2.0,
+            history: int = 50
+        ):
         """
         Initialize the SimpleDetector with a configurable sensitivity threshold.
         
@@ -39,7 +43,7 @@ class SimpleDetector(StreamingChangePointDetector):
                                Default: 2.0.
         """
         self.threshold = threshold
-        self.history = deque(maxlen=50)
+        self.history = deque(maxlen=history)
 
 
     def update(self, x: float) -> bool:
