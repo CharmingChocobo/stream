@@ -98,7 +98,7 @@ def csv_to_arrays(
     # Convert the DataFrame to a numpy array
     records = df.to_numpy().T
     category_names = df.columns.tolist()
-    print(f"Following categories found in the data: {category_names}")
+    # print(f"Following categories found in the data: {category_names}")
 
     return records, category_names
 
@@ -123,13 +123,15 @@ def create_signal_data_source():
         )
         # TODO: make this dynamic based on the data, for now we just take the first category and set fs to 1Hz for testing
         index = category_names.index(input(f"Enter the name of the parameter to use as signal {category_names}: ").lower())
+        # index = 0
         print(f"Signal of parameter: {category_names[index]}")
         signal = records[index]
-        # fs = 1 
         # fs = 0.2
+        # fs = 1 
+        fs = 200 # This is 1000x faster than original
         # fs = 360
         # fs = 720
-        fs= 1280
+        # fs= 1280
 
         return SignalDataSource(signal, fs)
     except FileNotFoundError:
