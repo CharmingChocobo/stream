@@ -141,7 +141,7 @@ class StreamingSimulator:
 
             feature = self.feature_deriver.get_feature()
             
-            is_change = self.change_point_detector.update(feature)
+            is_change = self.change_point_detector.update(feature_value=feature, raw_sample=sample)
             
             logger.debug(f"[Simulator] Feature={feature}, is_change={is_change}")
             
@@ -234,11 +234,11 @@ class StreamingSimulator:
 
         if not self.time_buffer:
             return []
-
+        
         times = np.fromiter(self.time_buffer, float)
         samples = np.fromiter(self.sample_buffer, float)
-        features = np.fromiter(self.feature_buffer, float) if self.feature_buffer else np.array([])
-        
+        # features = np.fromiter(self.feature_buffer, float) if self.feature_buffer else np.array([])
+        features = np.array(self.feature_buffer, dtype=object) if self.feature_buffer else np.array([])
         cps = np.array(change_points_list) if change_points_list else np.array([])
 
         artists = self.renderer.update(times, samples, features, cps, self.window_duration_sec)

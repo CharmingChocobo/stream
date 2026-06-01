@@ -81,20 +81,16 @@ class StreamingChangePointDetector(ABC):
     """
     
     @abstractmethod
-    def update(self, feature_value: Optional[float]) -> bool:
+    def update(self, feature_value: Optional[float], raw_sample: Optional[float] = None) -> bool:
         """
-        Update detector with new feature value.
-        
-        Processes the incoming feature and determines if a change point has occurred.
-        This method should be called sequentially for every new feature generated
-        by a `StreamingFeatureDeriver`.
+        Update detector with new feature value and optional raw sample.
         
         Args:
-            feature_value (Optional[float]): The latest feature value to analyze.
-                                             Can be None if the feature is unavailable.
+            feature_value: The latest feature value.
+            raw_sample: The raw signal value (optional, for residual detection).
         
         Returns:
-            bool: True if a change point (drift) is detected at this step, False otherwise.
+            bool: True if a change point is detected.
         """
         pass
     

@@ -10,7 +10,6 @@ from pathlib import Path
 from datetime import datetime
 import yaml
 
-<<<<<<< feature/use-csv-input
 # Load configuration from YAML file
 with open("./config.yaml", "r", encoding="utf-8") as stream:
     config = yaml.safe_load(stream)
@@ -24,10 +23,8 @@ try:
         LOG_DIR = Path.home() / ".streamsim" / "logs"
 except KeyError:
     LOG_DIR = Path.home() / ".streamsim" / "logs"
-=======
 
 LOG_DIR = Path.home() / ".streamsim" / "logs"
->>>>>>> main
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
