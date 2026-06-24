@@ -60,14 +60,14 @@ logger = logging.getLogger(__name__)
 
 import yaml
 # Data Source: Reads from a CSV file with 'timestamp', 'category', and 'value' columns
-from streamsim.src.sources.a_data_source import csv_to_arrays, create_uni_signal
+from streamsim.src.sources.a_data_source import csv_to_arrays, create_uni_signal, get_dataframe
 # deriver = SmoothedSignalDeriver (calculates moving average)
 from streamsim.src.features.simple import SmoothedSignalDeriver
-# renderer = ModelLineRenderer (plots raw signal + smoothed model)
 import matplotlib.pyplot as plt
+# renderer = ModelLineRenderer (plots raw signal + smoothed model)
 from streamsim.src.renderers.model_line import ModelLineRenderer
-# detector = ResidualThresholdDetector (simple residual-based change point detection)
-from streamsim.src.detectors.residual import ResidualThresholdDetector
+# detector = AbsoluteThresholdDetector (simple absolute threshold exceeder detection)
+from streamsim.src.detectors.absolute_threshold import AbsoluteThresholdDetector
 # ty together in a simulator
 from streamsim.src.core.simulator import StreamingSimulator
 
@@ -84,7 +84,8 @@ def sensor_demo():
         fig=fig, 
         ax=ax, 
         title="Model line", 
-        ylim=(0,15) #TODO: make this dynamic based on the data in window
+        # ylim=(0,15) #TODO: make this dynamic based on the data in window
+        ylim=(150, 600)
     )
 
     # 2. Initialize Data Source
@@ -102,8 +103,17 @@ def sensor_demo():
 
     # 3. Configure Signal Smoother
     deriver = SmoothedSignalDeriver(window_size = 100)
-    # 4. Configure Anomaly Detector 
-    detector = ResidualThresholdDetector(threshold=1.5, min_samples=30)
+    
+    # 4. Configure Anomaly Detector (get threshold dataframe and filter on univariate selected_parameter)
+    all_thresholds = get_dataframe(config["threshold_file"])
+    parameter_thresholds = all_thresholds[all_thresholds[config["category_column"]] == config["selected_parameter"]]
+
+    detector = AbsoluteThresholdDetector(
+        sorted((
+            parameter_thresholds["threshold_start"].values[0],
+            parameter_thresholds["threshold_stop"].values[0]
+        ))
+    )
 
     # 5. Configure Renderer
     renderer = ModelLineRenderer(
