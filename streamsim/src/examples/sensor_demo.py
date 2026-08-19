@@ -71,6 +71,8 @@ from streamsim.src.detectors.absolute_threshold import AbsoluteThresholdDetector
 # ty together in a simulator
 from streamsim.src.core.simulator import StreamingSimulator
 
+import numpy as np
+
 # Load configuration from YAML file
 with open("./config.yaml", "r", encoding="utf-8") as stream:
     config = yaml.safe_load(stream)
@@ -84,9 +86,45 @@ def sensor_demo():
         fig=fig, 
         ax=ax, 
         title="Model line", 
-        # ylim=(0,15) #TODO: make this dynamic based on the data in window
-        ylim=(150, 600)
+        ylim=(int(config["y_min"]), int(config["y_max"]))
     )
+
+    if config["y_dynamic"]:
+        def update_ylim(_event):
+            """Fit the y-axis to the values in the currently visible window. Written by Copilot, with minor adjustments by Jennefer Beenen."""
+            x_min, x_max = ax.get_xlim()
+            values = []
+            first_time = True
+            for line in ax.lines:
+                print("label", str(line.get_label()).lower())
+                if str(line.get_label()).lower() != 'anomaly':
+                    x_data = np.asarray(line.get_xdata())
+                    y_data = np.asarray(line.get_ydata())
+
+                    if first_time:
+                        # print(f"xs [{x_data.shape}]")
+                        # print(x_data)
+                        print(f"ys [{y_data.shape}]")
+                        print(y_data.max())
+                        first_time = False
+
+                    if len(x_data) != len(y_data):
+                        continue
+                    visible = (x_data >= x_min) & (x_data <= x_max)
+                    values.extend(y_data[visible])
+                    print("max(values)", max(values))
+
+            values = np.asarray(values, dtype=float)
+            values = values[np.isfinite(values)]
+            if values.size == 0:
+                return
+
+            lower, upper = values.min(), values.max()
+            print("upper", upper)
+            padding = max((upper - lower) * 0.05, 1e-9)
+            ax.set_ylim(lower - padding, upper + padding)
+
+        fig.canvas.mpl_connect("draw_event", update_ylim)
 
     # 2. Initialize Data Source
     records, category_names = csv_to_arrays(
