@@ -67,7 +67,10 @@ import matplotlib.pyplot as plt
 # renderer = ModelLineRenderer (plots raw signal + smoothed model)
 from streamsim.src.renderers.model_line import ModelLineRenderer
 # detector = AbsoluteThresholdDetector (simple absolute threshold exceeder detection)
+    # OPTION 1: AbsoluteThresholdDetector
 from streamsim.src.detectors.absolute_threshold import AbsoluteThresholdDetector
+    # OPTION 2: PlateauDetector
+from streamsim.src.detectors.plateau import PlateauDetector
 # ty together in a simulator
 from streamsim.src.core.simulator import StreamingSimulator
 
@@ -96,23 +99,17 @@ def sensor_demo():
             values = []
             first_time = True
             for line in ax.lines:
-                print("label", str(line.get_label()).lower())
                 if str(line.get_label()).lower() != 'anomaly':
                     x_data = np.asarray(line.get_xdata())
                     y_data = np.asarray(line.get_ydata())
 
                     if first_time:
-                        # print(f"xs [{x_data.shape}]")
-                        # print(x_data)
-                        print(f"ys [{y_data.shape}]")
-                        print(y_data.max())
                         first_time = False
 
                     if len(x_data) != len(y_data):
                         continue
                     visible = (x_data >= x_min) & (x_data <= x_max)
                     values.extend(y_data[visible])
-                    print("max(values)", max(values))
 
             values = np.asarray(values, dtype=float)
             values = values[np.isfinite(values)]
@@ -120,7 +117,6 @@ def sensor_demo():
                 return
 
             lower, upper = values.min(), values.max()
-            print("upper", upper)
             padding = max((upper - lower) * 0.05, 1e-9)
             ax.set_ylim(lower - padding, upper + padding)
 
@@ -146,18 +142,23 @@ def sensor_demo():
     all_thresholds = get_dataframe(config["threshold_file"])
     parameter_thresholds = all_thresholds[all_thresholds[config["category_column"]] == config["selected_parameter"]]
 
-    detector = AbsoluteThresholdDetector(
-        sorted((
-            parameter_thresholds["threshold_start"].values[0],
-            parameter_thresholds["threshold_stop"].values[0]
-        ))
-    )
+    # OPTION 1: AbsoluteThresholdDetector
+    # detector = AbsoluteThresholdDetector(
+    #     sorted((
+    #         parameter_thresholds["threshold_start"].values[0],
+    #         parameter_thresholds["threshold_stop"].values[0]
+    #     ))
+    # )
+
+    # OPTION 2: PlateauDetector
+    detector = PlateauDetector(history=25)
 
     # 5. Configure Renderer
     renderer = ModelLineRenderer(
         show_legend=True,
         signal_label='Raw Signal',
         model_label='Smoothed Model',
+        vline_color= 'red',
         title_template="Latest Value: {feature:.1f}"
     )   
 
