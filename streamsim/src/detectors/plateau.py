@@ -5,16 +5,15 @@ Detects a plateau in the raw signal.
 
 Detection Method:
     The detector maintains a rolling history of recent samples and computes the
-    mean and standard deviation (SD). ~~A new sample is flagged as a change point if it
-    deviates~~ from the recent SD by less than a configurable number of standard
-    deviations (threshold).~~
+    mean, standard deviation (SD), and slope. A new sample is flagged as a plateau if it
+    the slope is (or smaller than) `near_zero` and the SD is (or smaller than) `near_zero`.~~
 
 Important Dependencies:
     - collections.deque: Efficient circular buffer
     - streamsim.src.core.interfaces.StreamingChangePointDetector: Base interface
 
-Author: F. Feenstra & J. 
-# TODO: It appears to function on the 'smooth model' data instead of the raw data. Ideally it should function on the raw signal.
+Author: F. Feenstra & J. Beenen
+# TODO: How to handle differences in y-signal span/spread? (current method is more sensitive to signal with small spread in total signal.)
 """
 
 from collections import deque
@@ -28,10 +27,8 @@ logger = get_logger(__name__)
 
 class PlateauDetector(StreamingChangePointDetector):
     """
-    Flags a detection when (plateau = the moving variance < near_zero)
-
-    Very simple change point detector that flags points deviating from recent mean
-    by more than a specified number of standard deviations.
+    Flags a detection when (plateau = (the slope is (or smaller than) `near_zero`) and (the SD is (or smaller than) `near_zero`).)~~
+)
     """
     
     def __init__(
@@ -43,42 +40,73 @@ class PlateauDetector(StreamingChangePointDetector):
         Initialize the PlateauDetector with a configurable sensitivity threshold (`near_zero`).
         
         Args:
-            near_zero (float): Number of standard deviations for change point detection.
+            near_zero (float): The threshold for considering the slope and standard deviation as "near zero".
                                Default: 0.0001.
-            history (int): 
+            history (int): The number of recent samples to maintain in the rolling history for analysis.
                            Default: 50.
         """
         self.near_zero = near_zero
-        self.history = deque(maxlen=history)
+        self.history_len = int(history)
+        self.history = deque(maxlen=self.history_len)
+        self._sample_count = 0
+        self._drift_detected = False
 
+        logger.info(f"[PlateauDetector] Initialized: near_zero= {self.near_zero}; history= {self.history}")
 
     def update(self, feature_value: float, raw_sample=None) -> bool:
         """
-        Process a new sample and determine if it represents a change point.
-        
-        ~~Adds the sample to the rolling history, then checks if it deviates
-        significantly from the recent mean using a z-score-based approach.~~
+        Process a new sample and determine if it represents a plateau.
+        A plateau = (the absolute value of the slope is (or smaller than) `near_zero`) and (the absolute value of the standard deviation is (or smaller than) `near_zero`).)
 
-        Adds the sample to the rolling history, then checks if it deviates
-        significantly from the recent SD using a z-score-based approach.
-        
         Args:
-            x (float): The new sample value to evaluate.
-        
+            feature_value (float): The model-derived feature value (not used in this detector).
+            raw_sample (float): The new sample value to evaluate.
+
         Returns:
-            bool: True if the sample is flagged as a change point, False otherwise.
+            bool: True if the sample is flagged as a plateau, False otherwise.
         
         """
-        self.history.append(feature_value)
+        self._sample_count += 1
+        self._drift_detected = False
+        self.history.append(raw_sample)
 
-        if len(self.history) > 20:
+        # Detector logics
+        # Check if history is initiated
+        if len(self.history) > self.history_len -1:
             arr = np.array(self.history)
             # Exclude current sample from statistics (use all but last)
             mean = arr[:-1].mean()
             std = arr[:-1].std()
+            slope = np.polyfit(
+                np.arange(arr[:-1].shape[0]),
+                arr[:-1],
+                1
+            )[0]
 
-            if (mean == feature_value) & (abs(std) <= self.near_zero * abs(std)):
-            # if abs(std) <= self.near_zero * abs(std):
+            # 4. Log Every Sample (DEBUG level) or just Anomalies (INFO level)
+            # Uncomment the line below if you want to see EVERY calculation (can be verbose!)
+            logger.debug(f"[PlateauDetector] Check: raw_sample= {raw_sample:.4f}; mean= {mean:.4f}; std= {std:.4f}; slope= {slope:.4f}; count= {self._sample_count}")
+            
+            # 5. Check Threshold
+            # if standard deviation and slope in `history` is smaller than provided threshold (=`near_zero`):
+            if (abs(std) <= self.near_zero) & (abs(slope) <= self.near_zero): # `slope == 0` does not work due to floatpoint error.
+
+                # Log the ANOMALY clearly
+                logger.info(
+                    f"!! ANOMALY DETECTED: raw_sample= {raw_sample:.4f}; mean= {mean:.4f}; std= {std:.4f}; slope= {slope:.4f} | "
+                    f"Count={self._sample_count}"
+                )
                 return True
+                
         return False
-    
+
+
+
+    @property
+    def drift_detected(self) -> bool:
+        return self._drift_detected
+        
+    def reset(self) -> None:
+        logger.info("[PlateauDetector] Resetting state.")
+        self._sample_count = 0
+        self._drift_detected = False
